@@ -2146,7 +2146,7 @@
   window.getDocs = getDocs;
   window.deleteDoc = deleteDoc;
   window.doc = doc;
- // دالة التزامن اللحظي (تحديث تلقائي عند الكل في نفس اللحظة)
+ // دالة التزامن اللحظي لجلب وعرض المحاضرات أونلاين
         function loadLecturesFromFirebase() {
             window.onSnapshot(window.collection(window.db, "lectures"), (querySnapshot) => {
                 lectures = [];
@@ -2161,7 +2161,37 @@
             });
         }
 
-        // تشغيل التزامن أول ما الصفحة تفتح
+        // دالة حفظ ونشر المحاضرة مباشرة على فايربيز
+        async function saveLectureData() {
+            const titleInput = document.getElementById('newTitle');
+            const linkInput = document.getElementById('newLink');
+            
+            if (!titleInput || !linkInput) return;
+
+            const title = titleInput.value;
+            const link = linkInput.value;
+
+            if (!title || !link) {
+                alert('من فضلك ادخل عنوان ورابط المحاضرة!');
+                return;
+            }
+
+            try {
+                await window.addDoc(window.collection(window.db, "lectures"), {
+                    title: title,
+                    link: link,
+                    createdAt: new Date()
+                });
+                alert('تم نشر المحاضرة بنجاح على السحابة!');
+                titleInput.value = '';
+                linkInput.value = '';
+            } catch (error) {
+                console.error("Error adding lecture: ", error);
+                alert("حدث خطأ أثناء الحفظ، تأكد من الاتصال بالإنترنت.");
+            }
+        }
+
+        // ربط الأحداث وتشغيل التزامن أول ما الصفحة تفتح
         window.addEventListener('DOMContentLoaded', () => {
             if (window.db) {
                 loadLecturesFromFirebase();
