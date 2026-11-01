@@ -2161,7 +2161,7 @@
             });
         }
 
-        // دالة حفظ ونشر المحاضرة مباشرة على فايربيز
+       // دالة حفظ ونشر المحاضرة مباشرة وبدون أخطاء
         async function saveLectureData() {
             const titleInput = document.getElementById('newTitle');
             const linkInput = document.getElementById('newLink');
@@ -2177,7 +2177,7 @@
             }
 
             try {
-                await window.addDoc(window.collection(window.db, "lectures"), {
+                await addDoc(collection(db, "lectures"), {
                     title: title,
                     link: link,
                     createdAt: new Date()
@@ -2186,10 +2186,13 @@
                 titleInput.value = '';
                 linkInput.value = '';
             } catch (error) {
-                console.error("Error adding lecture: ", error);
+                console.error("Error saving lecture: ", error);
                 alert("حدث خطأ أثناء الحفظ، تأكد من الاتصال بالإنترنت.");
             }
         }
+        
+        // ربط الدالة بالزرار من الخارج
+        window.saveLectureData = saveLectureData;
 
         // ربط الأحداث وتشغيل التزامن أول ما الصفحة تفتح
         window.addEventListener('DOMContentLoaded', () => {
