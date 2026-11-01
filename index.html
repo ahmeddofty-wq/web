@@ -2090,5 +2090,33 @@
             `).join('');
         }
     </script>
+  <script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase.app.js";
+  import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase.firestore.js";
+
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyBptE5413cGdAcuyMp11HuroKwudbyq-8",
+    authDomain: "web4-4c14c.firebaseapp.com",
+    projectId: "web4-4c14c",
+    storageBucket: "web4-4c14c.appspot.com",
+    messagingSenderId: "637808596322",
+    appId: "1:637808596322:web:93555b6483238187a2c83b",
+    measurementId: "G-BFRK2DY627"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // ربط الأزرار وقاعدة البيانات هنا بسهولة
+  window.db = db;
+  window.collection = collection;
+  window.addDoc = addDoc;
+  window.getDocs = getDocs;
+  window.deleteDoc = deleteDoc;
+  window.doc = doc;
+</script>
 </body>
 </html>
