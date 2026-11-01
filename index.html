@@ -2075,12 +2075,24 @@
             document.getElementById('cancelEditBtn').classList.add('hidden');
         }
 
-        function deleteLecture(id) {
-            lectures = lectures.filter(l => l.id !== id);
-            localStorage.setItem('eng_lectures', JSON.stringify(lectures));
-            renderLibrary();
-            renderAdminItems();
-            updateDashboardStats();
+        async function deleteLecture(id) {
+            if (confirm('هل أنت متأكد من حذف هذه المحاضرة؟')) {
+                try {
+                    // حذف المحاضرة من قاعدة بيانات فايربيز أونلاين
+                    await window.deleteDoc(window.doc(window.db, "lectures", id));
+                    alert('تم حذف المحاضرة بنجاح!');
+                    
+                    // تحديث الشاشة
+                    if (typeof loadLecturesFromFirebase === 'function') {
+                        await loadLecturesFromFirebase();
+                    } else {
+                        location.reload();
+                    }
+                } catch (error) {
+                    console.error("Error deleting lecture: ", error);
+                    alert("حدث خطأ أثناء الحذف، تأكد من الاتصال بالإنترنت.");
+                }
+            }
         }
 
         function resetAllSiteData() {
@@ -2134,6 +2146,26 @@
   window.getDocs = getDocs;
   window.deleteDoc = deleteDoc;
   window.doc = doc;
+  async function loadLecturesFromFirebase() {
+            try {
+                const querySnapshot = await window.getDocs(window.collection(window.db, "lectures"));
+                lectures = [];
+                querySnapshot.forEach((doc) => {
+                    lectures.push({ id: doc.id, ...doc.data() });
+                });
+                if (typeof renderLibrary === 'function') renderLibrary();
+                if (typeof renderAdminItems === 'function') renderAdminItems();
+                if (typeof updateDashboardStats === 'function') updateDashboardStats();
+            } catch (error) {
+                console.error("Error loading lectures: ", error);
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            if (window.db) {
+                loadLecturesFromFirebase();
+            }
+        });
 </script>
 </body>
 </html>
