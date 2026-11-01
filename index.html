@@ -2012,7 +2012,7 @@
             document.getElementById('statCustomTabsCount').innerText = customTabsList.length + " (" + totalCustomItems + " عنصر)";
         }
 
-        function saveLectureData() {
+        async function saveLectureData() {
             const editId = document.getElementById('editLectureId').value;
             const title = document.getElementById('newTitle').value.trim();
             const subject = document.getElementById('newSubject').value;
@@ -2021,19 +2021,36 @@
 
             if (!title || !subject || !link) return alert('الرجاء إدخال كافة البيانات بشكل صحيح.');
 
-            if (editId) {
-                lectures = lectures.map(l => l.id == editId ? { ...l, title, subject, fileType, link } : l);
-                alert('تم تعديل المحاضرة بنجاح!');
-            } else {
-                lectures.unshift({ id: Date.now(), title, subject, fileType, link, date: new Date().toISOString().split('T')[0] });
-                alert('تم نشر المحاضرة بنجاح!');
-            }
+            try {
+                if (editId) {
+                    // التعديل لو المحاضرة موجودة
+                    const lectureRef = window.doc(window.db, "lectures", editId);
+                    await window.updateDoc(lectureRef, { title, subject, fileType, link });
+                    alert('تم تعديل المحاضرة بنجاح!');
+                } else {
+                    // الإضافة الجديدة مباشرة على فايربيز
+                    await window.addDoc(window.collection(window.db, "lectures"), {
+                        title,
+                        subject,
+                        fileType,
+                        link,
+                        date: new Date().toISOString().split('T')[0],
+                        createdAt: Date.now()
+                    });
+                    alert('تم نشر المحاضرة بنجاح!');
+                }
 
-            localStorage.setItem('eng_lectures', JSON.stringify(lectures));
-            resetLectureForm();
-            renderLibrary();
-            renderAdminItems();
-            updateDashboardStats();
+                resetLectureForm();
+                // إعادة جلب البيانات وتحديث الشاشة من قاعدة البيانات
+                if (typeof loadLecturesFromFirebase === 'function') {
+                    await loadLecturesFromFirebase();
+                } else {
+                    location.reload(); // تحديث سريع للصفحة لضمان ظهور البيانات الجديدة فوراً
+                }
+            } catch (error) {
+                console.error("Error saving lecture: ", error);
+                alert("حدث خطأ أثناء الحفظ، تأكد من الاتصال بالإنترنت.");
+            }
         }
 
         function editLecture(id) {
