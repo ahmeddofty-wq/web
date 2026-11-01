@@ -1,0 +1,2094 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="pageTitleMeta">المنصة التعليمية الهندسية الشاملة</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 50: '#eff6ff', 100: '#dbeafe', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 800: '#1e40af', 900: '#1e3a8a' }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Cairo', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); }
+        .dark .glass { background: rgba(15, 23, 42, 0.85); }
+        .inspect-mode-text { cursor: text !important; outline: 2px dashed #3b82f6 !important; background: rgba(59, 130, 246, 0.05); }
+        .inspect-mode-img { cursor: pointer !important; outline: 3px dashed #a855f7 !important; filter: brightness(0.9); }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-300">
+
+    <!-- Maintenance Mode Screen Overlay -->
+    <div id="maintenanceOverlay" class="fixed inset-0 z-[100] bg-slate-950/95 backdrop-blur-xl flex flex-col items-center justify-center p-6 text-center hidden">
+        <div id="maintCardBox" class="max-w-md w-full bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-2xl space-y-5 relative">
+            <div onclick="handleSecretClicks()" title="تجاوز الصيانة (10 كلكات)" class="w-20 h-20 bg-amber-500/10 text-amber-500 rounded-3xl mx-auto flex items-center justify-center text-4xl animate-bounce cursor-pointer select-none">
+                <i class="fa-solid fa-screwdriver-wrench"></i>
+            </div>
+            <h2 id="maintDisplayTitle" class="text-2xl font-black text-white">المنصة قيد الصيانة والتحديث</h2>
+            <p id="maintenanceMsgDisplay" class="text-xs text-slate-400 leading-relaxed">
+                عذراً، المنصة التعليمية تحت الصيانة والتحديث الدوري حالياً لضمان تقديم أفضل تجربة تعليمية. سنعود للعمل خلال دقائق قليلة.
+            </p>
+            
+            <div id="maintTimerBox" class="pt-2 flex justify-center items-center gap-2 text-xs text-amber-400 font-bold bg-amber-500/5 py-2.5 rounded-xl border border-amber-500/10">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                <span id="maintTimerText">الوقت المتبقي لعودة المنصة: جاري التحديث...</span>
+            </div>
+
+            <p id="maintDisplayFooter" class="text-[10px] text-slate-600">شكرًا لتفهمكم — فريق الهندسة والتقنية</p>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="sticky top-0 z-40 glass border-b border-slate-200 dark:border-slate-800 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div id="customHeaderLogo" class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-black text-2xl shadow-lg shadow-blue-500/25">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <div>
+                    <h1 id="siteTitleDisplay" class="font-black text-xl text-slate-900 dark:text-white leading-tight movable-text">منصة المحاضرات الهندسية</h1>
+                    <p id="siteSubtitleDisplay" class="text-xs text-slate-500 dark:text-slate-400 movable-text">المكتبة الرقمية الشاملة للطلاب</p>
+                </div>
+            </div>
+
+            <!-- Header Navigation Buttons (Library, Clubs, Custom Tabs, About, Announcements) -->
+            <div class="flex items-center gap-2 sm:gap-3 flex-wrap justify-end" id="headerNavButtonsContainer">
+                <button onclick="switchTab('library')" id="tabBtn-library" class="px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 bg-blue-600 text-white shadow-md shadow-blue-500/20">
+                    <i class="fa-solid fa-book-open"></i> <span id="lblLibrary">المكتبة</span>
+                </button>
+                
+                <button onclick="switchTab('clubs')" id="tabBtn-clubs" class="px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700">
+                    <i class="fa-solid fa-users-rays"></i> <span id="lblClubs">Clubs</span>
+                </button>
+
+                <!-- Dynamic Custom Tabs injected here -->
+                <div id="dynamicHeaderTabsContainer" class="flex items-center gap-2"></div>
+
+                <button onclick="switchTab('about')" id="tabBtn-about" class="px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700">
+                    <i class="fa-solid fa-circle-info"></i> <span id="lblAbout">عن المنصة والجروبات</span>
+                </button>
+                <button onclick="switchTab('announcements')" id="tabBtn-announcements" class="px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700">
+                    <i class="fa-solid fa-bullhorn"></i> <span id="lblAnnouncements">الإعلانات</span>
+                </button>
+                <div class="h-6 w-[1px] bg-slate-200 dark:bg-slate-800 mx-1"></div>
+                
+                <button onclick="toggleLanguage()" class="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition text-xs font-bold flex items-center gap-1.5">
+                    <i class="fa-solid fa-globe"></i> <span id="langBtnText">English</span>
+                </button>
+
+                <button onclick="toggleDarkMode()" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+                    <i class="fa-solid fa-moon text-lg dark:hidden"></i>
+                    <i class="fa-solid fa-sun text-lg hidden dark:block text-amber-400"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Banner & Student Tasks Tracker Widget -->
+    <div id="customBannerBox" class="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white py-8 sm:py-10 px-4 shadow-inner relative overflow-hidden">
+        <div class="max-w-4xl mx-auto text-center relative z-10 space-y-4">
+            <h2 id="bannerTitleDisplay" class="text-2xl sm:text-4xl font-black mb-1 movable-text">أهلاً بكم في المنصة التعليمية الرقمية</h2>
+            <p id="bannerDescDisplay" class="text-blue-100 text-xs sm:text-base max-w-2xl mx-auto font-medium movable-text">حمل واستعرض أحدث ملخصات المحاضرات، الشيتات، والمراجع الهندسية المعتمدة مجاناً وبكل سهولة.</p>
+            
+            <div class="bg-white/10 backdrop-blur-md p-4 rounded-3xl border border-white/20 text-right space-y-3">
+                <div class="flex justify-between items-center text-xs font-bold">
+                    <span id="taskProgressText">مؤشر إنجاز مهماتي: 0%</span>
+                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-list-check text-emerald-400"></i> <span id="taskWidgetTitle" class="movable-text">مهمات وإنجازات الطالب الخاصة</span></span>
+                </div>
+                <div class="w-full bg-black/20 rounded-full h-2.5 overflow-hidden">
+                    <div id="taskProgressBarFill" class="bg-emerald-400 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+                
+                <div class="flex gap-2 pt-1">
+                    <input type="text" id="customTaskInput" placeholder="اكتب مهمة جديدة (مثلاً: حل شيت الميكانيكا)..." class="flex-1 px-3 py-2 bg-white/20 placeholder-blue-200 text-white border border-white/30 rounded-xl text-xs focus:outline-none" onkeypress="if(event.key==='Enter') addCustomTask()">
+                    <button onclick="addCustomTask()" id="addTaskBtnText" class="px-4 py-2 bg-emerald-500 text-white font-bold rounded-xl text-xs hover:bg-emerald-600 transition shadow">إضافة مهمة</button>
+                </div>
+
+                <div id="customTasksList" class="space-y-2 max-h-36 overflow-y-auto pt-1"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
+        <!-- قسم المكتبة -->
+        <section id="sec-library" class="space-y-6">
+            <div class="flex flex-col sm:flex-row gap-4 justify-between items-center bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                <div class="relative w-full sm:w-96">
+                    <i class="fa-solid fa-magnifying-glass absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" id="searchInput" oninput="renderLibrary()" placeholder="بحث فوري سريع عن المحاضرات..." class="w-full pl-4 pr-11 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-2 sm:pb-0" id="subjectFilterContainer"></div>
+            </div>
+
+            <div id="libraryGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </section>
+
+        <!-- قسم Clubs المطور -->
+        <section id="sec-clubs" class="space-y-6 hidden">
+            <div class="flex flex-col sm:flex-row gap-4 justify-between items-center bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                <div class="relative w-full sm:w-96">
+                    <i class="fa-solid fa-magnifying-glass absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" id="clubsSearchInput" oninput="renderClubs()" placeholder="بحث عن أندية الجامعة والأنشطة..." class="w-full pl-4 pr-11 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="text-xs font-bold text-slate-500">أندية وأنشطة الجامعة الرسمية</div>
+            </div>
+
+            <div id="clubsContainerGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </section>
+
+        <!-- Dynamic Custom Tabs Content Container -->
+        <div id="dynamicTabsSectionsContainer"></div>
+
+        <!-- قسم عن المنصة والجروبات وتطبيقات الجامعة -->
+        <section id="sec-about" class="space-y-6 hidden">
+            <div class="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-8">
+                <div>
+                    <h3 id="aboutGroupsTitleDisplay" class="text-xl font-bold mb-2 flex items-center gap-2 text-blue-600 movable-text">
+                        <i class="fa-solid fa-users-rectangle"></i> روابط الجروبات الرسمية للدفعة والكلية
+                    </h3>
+                    <p id="aboutGroupsDescDisplay" class="text-xs text-slate-500 dark:text-slate-400 mb-4 movable-text">انضم للجروبات الرسمية لتبقى على اطلاع دائم بآخر التنبيهات وجداول السكاشن والمحاضرات.</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4" id="officialGroupsGrid"></div>
+                </div>
+
+                <hr class="border-slate-200 dark:border-slate-800">
+
+                <div>
+                    <h3 id="aboutAppsTitleDisplay" class="text-xl font-bold mb-2 flex items-center gap-2 text-indigo-600 movable-text">
+                        <i class="fa-solid fa-laptop-code"></i> أهم التطبيقات والبرامج المطلوبة للطلاب الجدد
+                    </h3>
+                    <p id="aboutAppsDescDisplay" class="text-xs text-slate-500 dark:text-slate-400 mb-4 movable-text">تطبيقات وبرامج أساسية تحتاجها طوال فترة دراستك في كلية الهندسة.</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="essentialAppsGrid"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- قسم الإعلانات -->
+        <section id="sec-announcements" class="space-y-6 hidden">
+            <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                <h3 class="text-xl font-bold mb-4 flex items-center gap-2 text-blue-600 movable-text">
+                    <i class="fa-solid fa-bullhorn"></i> <span id="announcementsHeaderTitle">آخر التنبيهات والإعلانات الرسمية</span>
+                </h3>
+                <div id="announcementsList" class="space-y-4"></div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Generic Item Details Modal (For Clubs & Custom Tabs) -->
+    <div id="clubDetailsModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full max-h-[85vh] flex flex-col shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-circle-info text-blue-600 text-xl"></i>
+                    <h3 id="clubModalTitle" class="font-black text-base text-slate-900 dark:text-white">التفاصيل</h3>
+                </div>
+                <button onclick="closeClubDetailsModal()" class="w-9 h-9 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-rose-500 hover:text-white transition flex items-center justify-center">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <div id="clubModalBody" class="p-6 overflow-y-auto space-y-4 text-xs leading-relaxed text-slate-700 dark:text-slate-300"></div>
+        </div>
+    </div>
+
+    <!-- QR Code Modal -->
+    <div id="clubQrModal" class="fixed inset-0 z-[170] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4 text-center">
+            <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
+                <h3 class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                    <i class="fa-solid fa-qrcode text-purple-600"></i> كود QR
+                </h3>
+                <button onclick="closeQrModal()" class="w-7 h-7 bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-500 hover:bg-rose-500 hover:text-white transition flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="qrModalBody" class="py-4 flex justify-center items-center"></div>
+            <p class="text-[11px] text-slate-400">امسح الكود بكاميرا هاتفك للوصول السريع</p>
+        </div>
+    </div>
+
+    <!-- Modal File Viewer -->
+    <div id="fileViewerModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 hidden">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-5xl w-full h-[90vh] flex flex-col shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-file-lines text-blue-600 text-xl"></i>
+                    <h3 id="viewerTitle" class="font-bold text-base text-slate-900 dark:text-white">معاينة الملف</h3>
+                </div>
+                <button onclick="closeViewerModal()" class="w-9 h-9 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-rose-500 hover:text-white transition flex items-center justify-center">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <div id="viewerBody" class="flex-1 w-full bg-slate-100 dark:bg-slate-950 flex items-center justify-center overflow-auto p-2"></div>
+        </div>
+    </div>
+
+    <!-- Targeted Text Editor Modal -->
+    <div id="targetedTextModal" class="fixed inset-0 z-[150] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
+                <h3 class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                    <i class="fa-solid fa-pen-nib text-blue-600"></i> تعديل النص المختار بدقة
+                </h3>
+                <button onclick="closeTargetedTextModal()" class="w-7 h-7 bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-500 hover:bg-rose-500 hover:text-white transition flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="space-y-3">
+                <div>
+                    <label class="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">اكتب النص الجديد:</label>
+                    <input type="text" id="targetTextInput" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">لون النص:</label>
+                    <input type="color" id="targetColorInput" value="#2563eb" class="w-full h-10 rounded-xl cursor-pointer bg-transparent">
+                </div>
+            </div>
+            <button onclick="applyTargetedTextChanges()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition">حفظ التعديل فوراً</button>
+        </div>
+    </div>
+
+    <!-- Image Replacer Modal -->
+    <div id="imageReplacerModal" class="fixed inset-0 z-[160] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
+                <h3 class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                    <i class="fa-solid fa-image text-purple-600"></i> تغيير الصورة بالماوس
+                </h3>
+                <button onclick="closeImageReplacerModal()" class="w-7 h-7 bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-500 hover:bg-rose-500 hover:text-white transition flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="space-y-3">
+                <p class="text-[11px] text-slate-500 dark:text-slate-400">اختر صورة جديدة من جهازك لاستبدال الصورة وحفظها للأبد:</p>
+                <input type="file" id="newImageFile" accept="image/*" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100">
+            </div>
+            <button onclick="applyImageReplacement()" class="w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs transition">استبدال وحفظ الصورة فوراً</button>
+        </div>
+    </div>
+
+    <!-- Admin Panel Modal -->
+    <div id="adminModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+                <h3 class="font-bold text-lg flex items-center gap-2 text-slate-900 dark:text-white">
+                    <i class="fa-solid fa-user-shield text-blue-600"></i> <span id="adminModalTitle">لوحة التحكم</span>
+                </h3>
+                <button onclick="closeAdminModal()" class="w-9 h-9 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-rose-500 hover:text-white transition flex items-center justify-center">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto flex-1 space-y-6">
+                <!-- Login Gate -->
+                <div id="adminLoginBox" class="space-y-4 py-8 text-center max-w-sm mx-auto">
+                    <div class="w-16 h-16 bg-blue-100 dark:bg-blue-900/50 text-blue-600 rounded-2xl mx-auto flex items-center justify-center text-2xl">
+                        <i class="fa-solid fa-lock"></i>
+                    </div>
+                    <h4 class="font-bold text-base text-slate-900 dark:text-white" id="adminLoginPrompt">أدخل كلمة المرور للوصول للوحة التحكم</h4>
+                    <input type="password" id="adminPasswordInput" placeholder="كلمة المرور" class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-center text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" onkeypress="if(event.key==='Enter') verifyAdminPassword()">
+                    <button onclick="verifyAdminPassword()" id="adminLoginBtn" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm transition shadow-md shadow-blue-500/20">دخول اللوحة</button>
+                </div>
+
+                <!-- Dashboard Content -->
+                <div id="adminDashboardContent" class="space-y-6 hidden">
+                    
+                    <!-- TOOLS -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="bg-blue-600 text-white p-4 rounded-2xl shadow-lg space-y-2">
+                            <h4 class="font-bold text-xs flex items-center gap-2"><i class="fa-solid fa-wand-magic-sparkles"></i> تعديل النصوص بالماوس (محفوظ دائماً)</h4>
+                            <button onclick="toggleTargetedTextEditor()" id="textEditorBtnText" class="w-full py-2.5 bg-white text-blue-700 font-extrabold rounded-xl text-xs transition shadow hover:bg-blue-50">تفعيل نصوص الماوس 👆</button>
+                        </div>
+                        <div class="bg-purple-600 text-white p-4 rounded-2xl shadow-lg space-y-2">
+                            <h4 class="font-bold text-xs flex items-center gap-2"><i class="fa-solid fa-image"></i> تغيير الصور بالماوس (محفوظة دائماً)</h4>
+                            <button onclick="toggleImageReplacerMode()" id="imageReplacerBtnText" class="w-full py-2.5 bg-white text-purple-700 font-extrabold rounded-xl text-xs transition shadow hover:bg-purple-50">تفعيل تغيير الصور 🖼️</button>
+                        </div>
+                    </div>
+
+                    <!-- Stats Widget -->
+                    <div class="grid grid-cols-4 gap-3">
+                        <div class="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 p-3 rounded-2xl text-center">
+                            <span class="text-[10px] text-blue-600 dark:text-blue-300 font-bold block">المحاضرات</span>
+                            <span id="statLecturesCount" class="text-xl font-black text-blue-700 dark:text-blue-200">0</span>
+                        </div>
+                        <div class="bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-800 p-3 rounded-2xl text-center">
+                            <span class="text-[10px] text-indigo-600 dark:text-indigo-300 font-bold block">الأقسام</span>
+                            <span id="statSubjectsCount" class="text-xl font-black text-indigo-700 dark:text-indigo-200">0</span>
+                        </div>
+                        <div class="bg-purple-50 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-800 p-3 rounded-2xl text-center">
+                            <span class="text-[10px] text-purple-600 dark:text-purple-300 font-bold block">النوادي</span>
+                            <span id="statClubsCount" class="text-xl font-black text-purple-700 dark:text-purple-200">0</span>
+                        </div>
+                        <div class="bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 p-3 rounded-2xl text-center">
+                            <span class="text-[10px] text-emerald-600 dark:text-emerald-300 font-bold block">الخانات المخصصة</span>
+                            <span id="statCustomTabsCount" class="text-xl font-black text-emerald-700 dark:text-emerald-200">0</span>
+                        </div>
+                    </div>
+
+                    <!-- ================= NEW: DYNAMIC CUSTOM TABS & PAGES MANAGER ================= -->
+                    <div class="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-4">
+                        <h4 class="font-bold text-sm flex items-center gap-2 text-emerald-600">
+                            <i class="fa-solid fa-square-plus"></i> إضافة وإدارة خانات/أقسام جديدة في الموقع (بجانب المكتبة والنوادي)
+                        </h4>
+                        <div class="space-y-3">
+                            <input type="text" id="newCustomTabNameInput" placeholder="اسم الخانة الجديدة (مثلاً: الأنشطة الطلابية، المعارض، الرحلات)..." class="w-full px-3 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white">
+                            <input type="text" id="newCustomTabIconInput" placeholder="أيقونة FontAwesome (مثلاً: fa-solid fa-rocket أو fa-solid fa-trophy)..." class="w-full px-3 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white">
+                            <button onclick="createNewCustomTab()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition shadow">إضافة خانة جديدة في شريط الموقع</button>
+                        </div>
+
+                        <div class="space-y-2 pt-3 border-t border-slate-200 dark:border-slate-700">
+                            <span class="text-xs font-bold text-slate-600 dark:text-slate-400 block">الخانات المخصصة الحالية (تعديل اسمها أو حذفها):</span>
+                            <div id="adminCustomTabsList" class="space-y-2 max-h-36 overflow-y-auto"></div>
+                        </div>
+
+                        <!-- Add Cards/Items to any Custom Tab -->
+                        <div class="space-y-3 pt-3 border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
+                            <h5 class="font-bold text-xs text-blue-600"><i class="fa-solid fa-circle-plus"></i> إضافة عنصر (كارت) جوه أي خانة مخصصة أضفتها</h5>
+                            
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <select id="targetCustomTabSelect" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white"></select>
+                                <input type="text" id="customItemTitle" placeholder="عنوان الكارت (مثلاً: الرحلة العلمية الأولى)..." class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white">
+                            </div>
+                            
+                            <textarea id="customItemDesc" placeholder="الوصف التفصيلي للكارت..." class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white h-16"></textarea>
+                            
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <textarea id="customItemAchievements" placeholder="الإنجازات أو التفاصيل الإضافية..." class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white h-14"></textarea>
+                                <textarea id="customItemCv" placeholder="السيرة الذاتية أو المسؤولين..." class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white h-14"></textarea>
+                            </div>
+
+                            <!-- Links for Custom Item -->
+                            <div class="space-y-2 bg-slate-50 dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-700">
+                                <span class="text-[11px] font-bold text-slate-700 dark:text-slate-300 block">إضافة لينكات (فورم، واتساب، رابط...):</span>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    <input type="text" id="customItemLinkTitle" placeholder="عنوان اللينك..." class="px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs">
+                                    <div class="flex gap-1">
+                                        <input type="text" id="customItemLinkUrl" placeholder="رابط URL..." class="flex-1 px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs">
+                                        <button type="button" onclick="addCustomItemLinkToList()" class="px-3 py-1.5 bg-blue-600 text-white font-bold rounded-lg text-xs">إضافة</button>
+                                    </div>
+                                </div>
+                                <div id="adminCustomItemLinksPreview" class="space-y-1 pt-1"></div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label class="text-[10px] font-bold text-slate-700 dark:text-slate-300 block mb-1">صور الكارت (أكثر من صورة):</label>
+                                    <input type="file" id="customItemImagesFile" accept="image/*" multiple class="w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-[10px] file:font-bold file:bg-blue-50 file:text-blue-700">
+                                </div>
+                                <div>
+                                    <label class="text-[10px] font-bold text-slate-700 dark:text-slate-300 block mb-1">صورة QR Code (اختياري):</label>
+                                    <input type="file" id="customItemQrFile" accept="image/*" class="w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-[10px] file:font-bold file:bg-emerald-50 file:text-emerald-700">
+                                </div>
+                            </div>
+
+                            <button onclick="saveCustomTabItem()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition shadow">حفظ وإضافة الكارت للخانة المخصصة</button>
+                            
+                            <div class="space-y-2 pt-2">
+                                <span class="text-xs font-bold text-slate-600 dark:text-slate-400 block">العناصر الحالية في الخانات المخصصة (حذف):</span>
+                                <div id="adminCustomItemsList" class="space-y-1.5 max-h-32 overflow-y-auto"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- ================= END CUSTOM TABS MANAGER ================= -->
+
+                    <!-- ADMIN CLUBS MANAGER FORM -->
+                    <div class="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-4">
+                        <h4 class="font-bold text-sm flex items-center gap-2 text-purple-600" id="clubFormHeaderTitle">
+                            <i class="fa-solid fa-users-rays"></i> إدارة أندية الجامعة (Clubs)
+                        </h4>
+                        <input type="hidden" id="editClubId" value="">
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <input type="text" id="newClubName" placeholder="اسم النادي..." class="w-full px-3 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white">
+                            <input type="text" id="newClubCategories" placeholder="الكاتجوري..." class="w-full px-3 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white">
+                        </div>
+
+                        <textarea id="newClubDesc" placeholder="شرح تفصيلي..." class="w-full px-3 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white h-20"></textarea>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <textarea id="newClubAchievements" placeholder="الإنجازات..." class="w-full px-3 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white h-16"></textarea>
+                            <textarea id="newClubCv" placeholder="السيرة الذاتية..." class="w-full px-3 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white h-16"></textarea>
+                        </div>
+
+                        <!-- Links -->
+                        <div class="space-y-2 bg-white dark:bg-slate-800 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700">
+                            <span class="text-xs font-bold text-slate-700 dark:text-slate-300 block">إضافة لينكات النادي:</span>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <input type="text" id="linkTitleInput" placeholder="عنوان اللينك..." class="px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs">
+                                <div class="flex gap-1">
+                                    <input type="text" id="linkUrlInput" placeholder="رابط URL..." class="flex-1 px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs">
+                                    <button type="button" onclick="addClubLinkToList()" class="px-3 py-2 bg-purple-600 text-white font-bold rounded-xl text-xs">إضافة</button>
+                                </div>
+                            </div>
+                            <div id="adminClubLinksPreview" class="space-y-1.5 pt-2"></div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">صور النادي:</label>
+                                <input type="file" id="newClubImagesFile" accept="image/*" multiple class="w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-purple-50 file:text-purple-700">
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">صورة كود QR:</label>
+                                <input type="file" id="newClubQrFile" accept="image/*" class="w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700">
+                            </div>
+                        </div>
+
+                        <div class="flex gap-2">
+                            <button onclick="saveClubData()" id="saveClubBtn" class="flex-1 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs transition shadow">حفظ ونشر النادي</button>
+                            <button onclick="resetClubForm()" id="cancelClubEditBtn" class="px-4 py-2.5 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-white font-bold rounded-xl text-xs transition hidden">إلغاء</button>
+                        </div>
+
+                        <div class="space-y-2 pt-2 border-t border-slate-200 dark:border-slate-700">
+                            <span class="text-xs font-bold text-slate-600 dark:text-slate-400 block">الأندية الحالية:</span>
+                            <div id="adminClubsList" class="space-y-2 max-h-36 overflow-y-auto"></div>
+                        </div>
+                    </div>
+
+                    <!-- Granular Element Color Customizer -->
+                    <div class="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-4">
+                        <h4 class="font-bold text-sm flex items-center gap-2 text-indigo-600">
+                            <i class="fa-solid fa-palette"></i> تخصيص الألوان
+                        </h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div class="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                                <span class="text-xs font-bold text-slate-700 dark:text-slate-300">أيقونة الشعار:</span>
+                                <input type="color" id="colorLogo" value="#2563eb" class="w-9 h-9 rounded-lg cursor-pointer bg-transparent border-0">
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                                <span class="text-xs font-bold text-slate-700 dark:text-slate-300">لون البانر:</span>
+                                <input type="color" id="colorBanner" value="#2563eb" class="w-9 h-9 rounded-lg cursor-pointer bg-transparent border-0">
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                                <span class="text-xs font-bold text-slate-700 dark:text-slate-300">زر المكتبة والأزرار:</span>
+                                <input type="color" id="colorButtons" value="#2563eb" class="w-9 h-9 rounded-lg cursor-pointer bg-transparent border-0">
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                                <span class="text-xs font-bold text-slate-700 dark:text-slate-300">خلفية الصيانة:</span>
+                                <input type="color" id="colorMaintenance" value="#0f172a" class="w-9 h-9 rounded-lg cursor-pointer bg-transparent border-0">
+                            </div>
+                        </div>
+                        <button onclick="saveGranularColors()" class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition">حفظ وتطبيق الألوان</button>
+                    </div>
+
+                    <!-- Customization: Change ALL texts -->
+                    <div class="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-4">
+                        <h4 class="font-bold text-sm flex items-center gap-2 text-indigo-600"><i class="fa-solid fa-pen-nib"></i> تعديل العناوين والأسماء</h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-[10px] text-slate-400 block mb-1">اسم الموقع الرئيسي:</label>
+                                <input type="text" id="settingSiteTitle" class="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white">
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-slate-400 block mb-1">العنوان الفرعي:</label>
+                                <input type="text" id="settingSiteSubtitle" class="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white">
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-slate-400 block mb-1">عنوان البانر:</label>
+                                <input type="text" id="settingBannerTitle" class="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white">
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-slate-400 block mb-1">وصف البانر:</label>
+                                <input type="text" id="settingBannerDesc" class="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white">
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-slate-400 block mb-1">اسم زر المكتبة:</label>
+                                <input type="text" id="settingLibraryText" class="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white">
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-slate-400 block mb-1">اسم زر Clubs:</label>
+                                <input type="text" id="settingClubsText" class="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white">
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-slate-400 block mb-1">زر "عن المنصة":</label>
+                                <input type="text" id="settingAboutText" class="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white">
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-slate-400 block mb-1">زر الإعلانات:</label>
+                                <input type="text" id="settingAnnouncementsText" class="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white">
+                            </div>
+                        </div>
+                        <button onclick="saveSiteSettings()" class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition">حفظ العناوين والأسماء</button>
+                    </div>
+
+                    <!-- Manage Subjects -->
+                    <div class="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-4">
+                        <h4 class="font-bold text-sm flex items-center gap-2 text-blue-600">
+                            <i class="fa-solid fa-folder-tree"></i> إدارة أقسام ومواد المكتبة
+                        </h4>
+                        <div class="flex gap-2">
+                            <input type="text" id="newSubjectNameInput" placeholder="اسم القسم الجديد..." class="flex-1 px-3 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white">
+                            <button onclick="addNewSubject()" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition shadow">إضافة قسم</button>
+                        </div>
+                        <div id="adminSubjectsDetailedList" class="space-y-2 max-h-40 overflow-y-auto pt-1"></div>
+                    </div>
+
+                    <!-- Maintenance Mode -->
+                    <div class="bg-amber-500/10 border border-amber-500/30 p-5 rounded-2xl space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2 text-amber-500 font-bold text-sm">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                                <span>وضع الصيانة العامة</span>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="maintenanceToggle" onchange="toggleMaintenanceMode()" class="sr-only peer">
+                                <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Change Password -->
+                    <div class="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-3">
+                        <h4 class="font-bold text-sm flex items-center gap-2 text-rose-600"><i class="fa-solid fa-key"></i> تغيير كلمة المرور</h4>
+                        <input type="password" id="changeMaintPassInput" placeholder="كلمة المرور الجديدة..." class="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white">
+                        <button onclick="updateMaintenancePassword()" class="w-full py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs transition">حفظ كلمة المرور</button>
+                    </div>
+
+                    <!-- Add or Edit Lecture Form -->
+                    <div class="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-4">
+                        <h4 class="font-bold text-sm flex items-center gap-2 text-blue-600" id="formHeaderTitle">
+                            <i class="fa-solid fa-circle-plus"></i> إضافة محاضرة للمكتبة
+                        </h4>
+                        <input type="hidden" id="editLectureId" value="">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <input type="text" id="newTitle" placeholder="عنوان المحاضرة..." class="w-full px-3 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white">
+                            
+                            <select id="newSubject" class="w-full px-3 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none"></select>
+
+                            <select id="newFileType" class="w-full px-3 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none">
+                                <option value="محاضرة">محاضرة رسمية</option>
+                                <option value="شيت">شيت / تمارين</option>
+                                <option value="مرجع">مرجع / كتاب</option>
+                                <option value="امتحان سابق">امتحان سابق</option>
+                            </select>
+                        </div>
+                        <input type="text" id="newLink" placeholder="رابط جوجل درايف العام" class="w-full px-3 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white">
+                        
+                        <div class="flex gap-2">
+                            <button onclick="saveLectureData()" id="saveLectureBtn" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition shadow">نشر المحاضرة</button>
+                            <button onclick="resetLectureForm()" id="cancelEditBtn" class="px-4 py-2.5 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-white font-bold rounded-xl text-xs transition hidden">إلغاء</button>
+                        </div>
+                    </div>
+
+                    <!-- Reset Data -->
+                    <div class="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-2">
+                        <h5 class="font-bold text-xs text-rose-600">إعادة ضبط المصنع</h5>
+                        <button onclick="resetAllSiteData()" class="w-full py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-[11px]">مسح وإعادة ضبط كل البيانات</button>
+                    </div>
+
+                    <!-- Manage Existing Lectures -->
+                    <div class="space-y-3">
+                        <h4 class="font-bold text-sm text-slate-900 dark:text-white">المحاضرات المتاحة حالياً</h4>
+                        <div id="adminItemsList" class="space-y-2 max-h-48 overflow-y-auto"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-200 dark:border-slate-800 py-6 bg-white dark:bg-slate-900 text-center text-xs text-slate-500 dark:text-slate-400 space-y-1">
+        <p id="footerTextDisplay">جميع الحقوق محفوظة © كلية الهندسة 2026</p>
+        <p id="developerTextDisplay" class="font-semibold text-blue-600">تم التطوير بواسطة: أحمد وزملاؤه (هندسة ميكاترونكس)</p>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        const translations = {
+            ar: {
+                pageTitle: "المنصة التعليمية الهندسية الشاملة",
+                taskWidgetTitle: "مهمات وإنجازات الطالب الخاصة",
+                taskInputPlaceholder: "اكتب مهمة جديدة (مثلاً: حل شيت الميكانيكا)...",
+                addTaskBtn: "إضافة مهمة",
+                searchPlaceholder: "بحث فوري سريع عن المحاضرات...",
+                allFilter: "الكل",
+                openSiteBtn: "معاينة الملف",
+                adminModalTitle: "لوحة التحكم",
+                adminLoginPrompt: "أدخل كلمة المرور للوصول للوحة التحكم",
+                adminLoginBtn: "دخول اللوحة"
+            },
+            en: {
+                pageTitle: "Comprehensive Engineering Educational Platform",
+                taskWidgetTitle: "Student Tasks & Goals",
+                taskInputPlaceholder: "Add a new task...",
+                addTaskBtn: "Add Task",
+                searchPlaceholder: "Quick instant search...",
+                allFilter: "All",
+                openSiteBtn: "Preview File",
+                adminModalTitle: "Control Panel",
+                adminLoginPrompt: "Enter password to access control panel",
+                adminLoginBtn: "Login Panel"
+            }
+        };
+
+        let currentLang = localStorage.getItem('eng_platform_lang') || 'ar';
+        let adminPass = localStorage.getItem('eng_admin_pass') || 'admin';
+        let isMaintenanceMode = JSON.parse(localStorage.getItem('eng_maintenance_mode')) || false;
+        
+        let maintConfig = JSON.parse(localStorage.getItem('eng_maint_config')) || {
+            title: "المنصة قيد الصيانة والتحديث",
+            msg: "عذراً، المنصة التعليمية تحت الصيانة والتحديث الدوري حالياً لضمان تقديم أفضل تجربة تعليمية.",
+            footer: "شكرًا لتفهمكم — فريق الهندسة والتقنية",
+            targetEndTime: null
+        };
+
+        let timerInterval = null;
+        let isTargetedTextMode = false;
+        let activeTargetTextElement = null;
+
+        let isImageReplacerMode = false;
+        let activeTargetImageElement = null;
+
+        let tempClubLinks = [];
+        let tempCustomItemLinks = [];
+
+        let customMouseTexts = JSON.parse(localStorage.getItem('eng_custom_mouse_texts')) || {};
+        let customMouseImages = JSON.parse(localStorage.getItem('eng_custom_mouse_images')) || {};
+
+        let subjectsList = JSON.parse(localStorage.getItem('eng_subjects_list')) || [
+            "ميكاترونكس", "مدني", "كهربا", "ميكانيكا", "عمارة", "حاسبات"
+        ];
+
+        let officialGroups = JSON.parse(localStorage.getItem('eng_official_groups')) || [
+            { name: "جروب الدفعة الرسمي (واتساب)", link: "https://whatsapp.com/sample" },
+            { name: "قناة التليجرام للمحاضرات والشيتات", link: "https://telegram.org/sample" }
+        ];
+
+        let essentialApps = JSON.parse(localStorage.getItem('eng_essential_apps')) || [
+            { name: "Code::Blocks", desc: "برنامج البرمجة الأساسي للغة C++ في الترم الأول.", link: "https://www.codeblocks.org/" }
+        ];
+
+        let universityClubs = JSON.parse(localStorage.getItem('eng_university_clubs')) || [
+            { 
+                id: 1, 
+                name: "نادي الروبوتات والذكاء الاصطناعي", 
+                category: "أندية هندسية",
+                desc: "نادي هندسي يهتم بتصميم وبرمجة الروبوتات وتطبيقات الذكاء الاصطناعي والمشاركة في المسابقات الدولية.", 
+                achievements: "المركز الأول في مسابقة الروبوتات الوطنية 2025.", 
+                cv: "قائد النادي: المهندس أحمد Amr", 
+                links: [
+                    { title: "املأ فورم التسجيل في النادي", url: "https://whatsapp.com/sampleclub" }
+                ],
+                qrImage: "",
+                images: ["https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=600&q=80"] 
+            }
+        ];
+
+        // ================= DYNAMIC CUSTOM TABS (الخانات والمجلدات الجديدة التي يضيفها المستخدم) =================
+        let customTabsList = JSON.parse(localStorage.getItem('eng_custom_tabs_list')) || [];
+        // [ { id: 'tab_123', name: 'الأنشطة', icon: 'fa-solid fa-rocket' } ]
+        
+        let customTabItems = JSON.parse(localStorage.getItem('eng_custom_tab_items')) || {};
+        // { 'tab_123': [ { id: 1, tabId: 'tab_123', title: '...', desc: '...', achievements: '...', cv: '...', links: [], images: [], qrImage: '' } ] }
+        // ======================================================================================================
+
+        let siteColors = JSON.parse(localStorage.getItem('eng_granular_colors')) || {
+            logo: "#2563eb",
+            banner: "#2563eb",
+            buttons: "#2563eb",
+            maintenance: "#0f172a"
+        };
+
+        let siteSettings = JSON.parse(localStorage.getItem('eng_site_settings')) || {
+            siteTitle: "منصة المحاضرات الهندسية",
+            siteSubtitle: "المكتبة الرقمية الشاملة للطلاب",
+            bannerTitle: "أهلاً بكم في المنصة التعليمية الرقمية",
+            bannerDesc: "حمل واستعرض أحدث ملخصات المحاضرات، الشيتات، والمراجع الهندسية المعتمدة مجاناً وبكل سهولة.",
+            libraryText: "المكتبة",
+            clubsText: "Clubs",
+            aboutText: "عن المنصة والجروبات",
+            announcementsText: "الإعلانات",
+            footerRights: "جميع الحقوق محفوظة © كلية الهندسة 2026",
+            footerDev: "تم التطوير بواسطة: أحمد وزملاؤه (هندسة ميكاترونكس)"
+        };
+
+        function applyGranularColors() {
+            const logoEl = document.getElementById('customHeaderLogo');
+            if(logoEl) logoEl.style.background = siteColors.logo;
+
+            const bannerEl = document.getElementById('customBannerBox');
+            if(bannerEl) bannerEl.style.background = siteColors.banner;
+
+            document.querySelectorAll('.bg-blue-600').forEach(btn => {
+                btn.style.backgroundColor = siteColors.buttons;
+            });
+        }
+
+        function applyPersistentMouseEdits() {
+            Object.keys(customMouseTexts).forEach(selector => {
+                const item = customMouseTexts[selector];
+                document.querySelectorAll(selector).forEach(el => {
+                    if(item.text) el.innerText = item.text;
+                    if(item.color) el.style.color = item.color;
+                });
+            });
+
+            Object.keys(customMouseImages).forEach(selector => {
+                const imgUrl = customMouseImages[selector];
+                document.querySelectorAll(selector).forEach(img => {
+                    img.src = imgUrl;
+                });
+            });
+        }
+
+        // اختصار الكيبورد السري (Ctrl + Alt + l)
+        window.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.altKey && (e.key === 'l' || e.key === 'L' || e.key === 'م')) {
+                e.preventDefault();
+                openAdminModal();
+            }
+        });
+
+        window.addEventListener('DOMContentLoaded', () => {
+            applyGranularColors();
+            renderDynamicTabsInHeader();
+            renderDynamicTabsSections();
+            applyLanguage();
+            renderLibrary();
+            renderClubs();
+            renderAboutPage();
+            renderSubjectDropdown();
+            saveAndRenderTasks();
+            checkMaintenanceStatus();
+            applyPersistentMouseEdits();
+        });
+
+        // ================= DYNAMIC TABS RENDERING FUNCTIONS =================
+        function renderDynamicTabsInHeader() {
+            const container = document.getElementById('dynamicHeaderTabsContainer');
+            if(!container) return;
+
+            container.innerHTML = customTabsList.map(tab => `
+                <button onclick="switchTab('${tab.id}')" id="tabBtn-${tab.id}" class="px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700">
+                    <i class="${tab.icon || 'fa-solid fa-folder'}"></i> <span>${tab.name}</span>
+                </button>
+            `).join('');
+        }
+
+        let customTabSlidersState = {};
+
+        function renderDynamicTabsSections() {
+            const container = document.getElementById('dynamicTabsSectionsContainer');
+            if(!container) return;
+
+            container.innerHTML = customTabsList.map(tab => {
+                let items = (customTabItems[tab.id] || []);
+                return `
+                    <section id="sec-${tab.id}" class="space-y-6 hidden">
+                        <div class="flex flex-col sm:flex-row gap-4 justify-between items-center bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                            <div class="relative w-full sm:w-96">
+                                <i class="fa-solid fa-magnifying-glass absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                                <input type="text" id="search-${tab.id}" oninput="renderCustomTabGrid('${tab.id}')" placeholder="بحث في قسم ${tab.name}..." class="w-full pl-4 pr-11 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div class="text-xs font-bold text-slate-500">${tab.name} - قسم مخصص</div>
+                        </div>
+
+                        <div id="grid-${tab.id}" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+                    </section>
+                `;
+            }).join('');
+
+            // Render cards for each custom tab
+            customTabsList.forEach(tab => renderCustomTabGrid(tab.id));
+        }
+
+        function renderCustomTabGrid(tabId) {
+            const searchInput = document.getElementById(`search-${tabId}`);
+            const query = searchInput ? searchInput.value.toLowerCase() : '';
+            const grid = document.getElementById(`grid-${tabId}`);
+            if(!grid) return;
+
+            let items = (customTabItems[tabId] || []);
+            const filtered = items.filter(item => item.title.toLowerCase().includes(query) || item.desc.toLowerCase().includes(query));
+
+            if(filtered.length === 0) {
+                grid.innerHTML = `<div class="col-span-full py-12 text-center text-slate-400 font-medium">لا توجد عناصر مضافة في هذا القسم حالياً. أضف عناصرك من لوحة التحكم!</div>`;
+                return;
+            }
+
+            grid.innerHTML = filtered.map(item => {
+                let sliderKey = `${tabId}_${item.id}`;
+                if(customTabSlidersState[sliderKey] === undefined) customTabSlidersState[sliderKey] = 0;
+                let curIdx = customTabSlidersState[sliderKey];
+                let images = item.images && item.images.length > 0 ? item.images : ["https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=600&q=80"];
+                if(curIdx >= images.length) curIdx = 0;
+
+                return `
+                    <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm hover:shadow-md transition flex flex-col justify-between gap-4">
+                        <div class="space-y-3">
+                            <div class="relative w-full h-48 bg-slate-100 dark:bg-slate-800 rounded-2xl overflow-hidden group">
+                                <img src="${images[curIdx]}" class="w-full h-full object-cover transition-all duration-300">
+                                ${images.length > 1 ? `
+                                    <button onclick="slideCustomItemImage('${sliderKey}', -1, '${tabId}')" class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/50 text-white rounded-full flex items-center justify-center hover:bg-black transition"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                                    <button onclick="slideCustomItemImage('${sliderKey}', 1, '${tabId}')" class="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/50 text-white rounded-full flex items-center justify-center hover:bg-black transition"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                                    <span class="absolute bottom-2 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-black/60 text-white text-[10px] rounded-full">${curIdx + 1} / ${images.length}</span>
+                                ` : ''}
+                            </div>
+
+                            <h3 class="font-black text-lg text-slate-900 dark:text-white">${item.title}</h3>
+                            <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed line-clamp-2">${item.desc}</p>
+                        </div>
+
+                        <button onclick="openCustomItemDetails('${tabId}', ${item.id})" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs text-center transition shadow flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-circle-info text-sm"></i> عرض التفاصيل والروابط
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function slideCustomItemImage(sliderKey, direction, tabId) {
+            let items = customTabItems[tabId] || [];
+            let parts = sliderKey.split('_');
+            let itemId = parseInt(parts[parts.length - 1]);
+            let item = items.find(i => i.id === itemId);
+            if(!item || !item.images || item.images.length <= 1) return;
+            
+            let len = item.images.length;
+            let cur = customTabSlidersState[sliderKey] || 0;
+            cur = (cur + direction + len) % len;
+            customTabSlidersState[sliderKey] = cur;
+            renderCustomTabGrid(tabId);
+        }
+
+        function openCustomItemDetails(tabId, itemId) {
+            let items = customTabItems[tabId] || [];
+            let item = items.find(i => i.id === itemId);
+            if(!item) return;
+
+            document.getElementById('clubModalTitle').innerText = item.title;
+            const body = document.getElementById('clubModalBody');
+            
+            let linksHtml = '';
+            if(item.links && item.links.length > 0) {
+                linksHtml = `
+                    <div class="space-y-2 pt-1">
+                        <span class="font-bold text-blue-600 dark:text-blue-400 block">الروابط المرفقة:</span>
+                        <div class="space-y-2">
+                            ${item.links.map(l => `
+                                <a href="${l.url}" target="_blank" class="w-full py-2.5 px-4 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl text-xs text-center transition shadow flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-link text-sm"></i> ${l.title}
+                                </a>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            let qrBtnHtml = '';
+            if(item.qrImage) {
+                qrBtnHtml = `
+                    <div class="pt-2">
+                        <button onclick="openQrModal('${item.qrImage}')" class="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-2xl text-xs text-center transition shadow flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-qrcode text-base"></i> عرض كود QR
+                        </button>
+                    </div>
+                `;
+            }
+
+            body.innerHTML = `
+                <div class="space-y-4">
+                    <div>
+                        <span class="font-bold text-blue-600 dark:text-blue-400 block mb-1">الوصف التفصيلي:</span>
+                        <p class="text-slate-700 dark:text-slate-300 leading-relaxed">${item.desc}</p>
+                    </div>
+
+                    ${item.achievements ? `
+                        <div class="bg-purple-50 dark:bg-purple-900/20 p-3.5 rounded-2xl border border-purple-200 dark:border-purple-800 space-y-1">
+                            <span class="font-bold text-purple-700 dark:text-purple-300 block"><i class="fa-solid fa-trophy ml-1"></i> التفاصيل / الإنجازات:</span>
+                            <p class="text-slate-600 dark:text-slate-300">${item.achievements}</p>
+                        </div>
+                    ` : ''}
+
+                    ${item.cv ? `
+                        <div class="bg-indigo-50 dark:bg-indigo-900/20 p-3.5 rounded-2xl border border-indigo-200 dark:border-indigo-800 space-y-1">
+                            <span class="font-bold text-indigo-700 dark:text-indigo-300 block"><i class="fa-solid fa-id-card ml-1"></i> السيرة الذاتية / المسؤولين:</span>
+                            <p class="text-slate-600 dark:text-slate-300 whitespace-pre-line">${item.cv}</p>
+                        </div>
+                    ` : ''}
+
+                    ${linksHtml}
+                    ${qrBtnHtml}
+                </div>
+            `;
+            document.getElementById('clubDetailsModal').classList.remove('hidden');
+        }
+
+        // Admin Management Functions for Custom Tabs
+        function createNewCustomTab() {
+            const nameInput = document.getElementById('newCustomTabNameInput');
+            const iconInput = document.getElementById('newCustomTabIconInput');
+            const name = nameInput.value.trim();
+            let icon = iconInput.value.trim() || "fa-solid fa-folder-open";
+
+            if(!name) return alert('الرجاء ادخال اسم الخانة الجديدة.');
+            
+            const tabId = 'custom_tab_' + Date.now();
+            customTabsList.push({ id: tabId, name, icon });
+            localStorage.setItem('eng_custom_tabs_list', JSON.stringify(customTabsList));
+
+            nameInput.value = '';
+            iconInput.value = '';
+
+            renderDynamicTabsInHeader();
+            renderDynamicTabsSections();
+            renderAdminCustomTabsLists();
+            updateDashboardStats();
+            alert('تم إنشاء الخانة الجديدة بنجاح وظهرت في شريط الموقع!');
+        }
+
+        function deleteCustomTab(tabId) {
+            if(confirm('هل أنت متأكد من حذف هذه الخانة وكل ما فيها؟')) {
+                customTabsList = customTabsList.filter(t => t.id !== tabId);
+                delete customTabItems[tabId];
+                localStorage.setItem('eng_custom_tabs_list', JSON.stringify(customTabsList));
+                localStorage.setItem('eng_custom_tab_items', JSON.stringify(customTabItems));
+
+                renderDynamicTabsInHeader();
+                renderDynamicTabsSections();
+                renderAdminCustomTabsLists();
+                updateDashboardStats();
+                switchTab('library');
+            }
+        }
+
+        function renderAdminCustomTabsLists() {
+            const tabsListEl = document.getElementById('adminCustomTabsList');
+            const selectEl = document.getElementById('targetCustomTabSelect');
+            const itemsListEl = document.getElementById('adminCustomItemsList');
+
+            if(tabsListEl) {
+                if(customTabsList.length === 0) {
+                    tabsListEl.innerHTML = `<span class="text-[11px] text-slate-400">لا توجد خانات مخصصة مضافة حالياً.</span>`;
+                } else {
+                    tabsListEl.innerHTML = customTabsList.map(t => `
+                        <div class="flex justify-between items-center p-2.5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-xs">
+                            <span class="font-bold text-slate-900 dark:text-white"><i class="${t.icon} ml-2 text-emerald-500"></i> ${t.name}</span>
+                            <button onclick="deleteCustomTab('${t.id}')" class="px-2.5 py-1 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-lg text-[10px]">حذف الخانة</button>
+                        </div>
+                    `).join('');
+                }
+            }
+
+            if(selectEl) {
+                selectEl.innerHTML = customTabsList.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+            }
+
+            if(itemsListEl) {
+                let allItemsHTML = '';
+                customTabsList.forEach(tab => {
+                    let items = customTabItems[tab.id] || [];
+                    items.forEach(item => {
+                        allItemsHTML += `
+                            <div class="flex justify-between items-center p-2 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 text-xs">
+                                <span class="truncate max-w-[200px]"><b>[${tab.name}]</b> ${item.title}</span>
+                                <button onclick="deleteCustomItem('${tab.id}', ${item.id})" class="text-rose-500 hover:text-rose-700 px-2"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        `;
+                    });
+                });
+                itemsListEl.innerHTML = allItemsHTML || `<span class="text-[11px] text-slate-400">لا توجد عناصر مضافة بعد.</span>`;
+            }
+        }
+
+        function addCustomItemLinkToList() {
+            const titleInput = document.getElementById('customItemLinkTitle');
+            const urlInput = document.getElementById('customItemLinkUrl');
+            const title = titleInput.value.trim();
+            const url = urlInput.value.trim();
+
+            if(!title || !url) return alert('ادخل عنوان ورابط اللينك.');
+            tempCustomItemLinks.push({ title, url });
+            titleInput.value = '';
+            urlInput.value = '';
+            renderCustomItemLinksPreview();
+        }
+
+        function removeCustomItemLink(index) {
+            tempCustomItemLinks.splice(index, 1);
+            renderCustomItemLinksPreview();
+        }
+
+        function renderCustomItemLinksPreview() {
+            const container = document.getElementById('adminCustomItemLinksPreview');
+            if(!container) return;
+            if(tempCustomItemLinks.length === 0) {
+                container.innerHTML = `<span class="text-[10px] text-slate-400">لا توجد لينكات.</span>`;
+                return;
+            }
+            container.innerHTML = tempCustomItemLinks.map((l, i) => `
+                <div class="flex justify-between items-center bg-slate-100 dark:bg-slate-900 px-2 py-1 rounded text-xs">
+                    <span>${l.title}</span>
+                    <button type="button" onclick="removeCustomItemLink(${i})" class="text-rose-500"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            `).join('');
+        }
+
+        function saveCustomTabItem() {
+            const tabId = document.getElementById('targetCustomTabSelect').value;
+            if(!tabId) return alert('الرجاء اختيار خانة مخصصة أولاً (أو إنشاء خانة جديدة).');
+
+            const title = document.getElementById('customItemTitle').value.trim();
+            const desc = document.getElementById('customItemDesc').value.trim();
+            const achievements = document.getElementById('customItemAchievements').value.trim();
+            const cv = document.getElementById('customItemCv').value.trim();
+            const imagesFile = document.getElementById('customItemImagesFile');
+            const qrFile = document.getElementById('customItemQrFile');
+
+            if(!title || !desc) return alert('ادخل عنوان الكارت ووصفه على الأقل.');
+
+            let processSave = (imagesArr, qrUrl) => {
+                if(!customTabItems[tabId]) customTabItems[tabId] = [];
+                
+                customTabItems[tabId].unshift({
+                    id: Date.now(),
+                    tabId,
+                    title,
+                    desc,
+                    achievements,
+                    cv,
+                    links: [...tempCustomItemLinks],
+                    images: imagesArr.length > 0 ? imagesArr : ["https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=600&q=80"],
+                    qrImage: qrUrl || ""
+                });
+
+                localStorage.setItem('eng_custom_tab_items', JSON.stringify(customTabItems));
+                
+                // Reset form
+                document.getElementById('customItemTitle').value = '';
+                document.getElementById('customItemDesc').value = '';
+                document.getElementById('customItemAchievements').value = '';
+                document.getElementById('customItemCv').value = '';
+                document.getElementById('customItemImagesFile').value = '';
+                document.getElementById('customItemQrFile').value = '';
+                tempCustomItemLinks = [];
+                renderCustomItemLinksPreview();
+
+                renderCustomTabGrid(tabId);
+                renderAdminCustomTabsLists();
+                alert('تم إضافة الكارت بنجاح داخل الخانة المخصصة!');
+            };
+
+            let handleQrAndImages = (loadedImages) => {
+                if(qrFile && qrFile.files && qrFile.files[0]) {
+                    let reader = new FileReader();
+                    reader.onload = function(e) {
+                        processSave(loadedImages, e.target.result);
+                    };
+                    reader.readAsDataURL(qrFile.files[0]);
+                } else {
+                    processSave(loadedImages, "");
+                }
+            };
+
+            if(imagesFile && imagesFile.files && imagesFile.files.length > 0) {
+                let loadedImages = [];
+                let files = Array.from(imagesFile.files);
+                let processed = 0;
+                files.forEach(file => {
+                    let reader = new FileReader();
+                    reader.onload = function(e) {
+                        loadedImages.push(e.target.result);
+                        processed++;
+                        if(processed === files.length) handleQrAndImages(loadedImages);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            } else {
+                handleQrAndImages([]);
+            }
+        }
+
+        function deleteCustomItem(tabId, itemId) {
+            if(confirm('هل أنت متأكد من حذف هذا الكارت؟')) {
+                customTabItems[tabId] = (customTabItems[tabId] || []).filter(i => i.id !== itemId);
+                localStorage.setItem('eng_custom_tab_items', JSON.stringify(customTabItems));
+                renderCustomTabGrid(tabId);
+                renderAdminCustomTabsLists();
+            }
+        }
+        // =======================================================================
+
+        function getUniqueSelector(el) {
+            if (el.id) return '#' + el.id;
+            let path = [];
+            while (el && el.nodeType === Node.ELEMENT_NODE) {
+                let selector = el.nodeName.toLowerCase();
+                if (el.className) {
+                    let classes = el.className.split(/\s+/).filter(c => !c.includes('inspect-mode') && c.length > 0);
+                    if (classes.length > 0) selector += '.' + classes.join('.');
+                }
+                let sibling = el, nth = 1;
+                while ((sibling = sibling.previousElementSibling)) {
+                    if (sibling.nodeName.toLowerCase() === el.nodeName.toLowerCase()) nth++;
+                }
+                selector += `:nth-of-type(${nth})`;
+                path.unshift(selector);
+                el = el.parentNode;
+                if (el && el.nodeName === 'BODY') break;
+            }
+            return path.join(' > ');
+        }
+
+        function toggleTargetedTextEditor() {
+            isTargetedTextMode = !isTargetedTextMode;
+            if(isImageReplacerMode) toggleImageReplacerMode();
+            const btn = document.getElementById('textEditorBtnText');
+            if(isTargetedTextMode) {
+                document.querySelectorAll('h1, h2, h3, p, span').forEach(el => {
+                    if(el.innerText && el.innerText.trim().length > 0 && !el.closest('button') && !el.closest('input')) {
+                        el.classList.add('inspect-mode-text');
+                    }
+                });
+                btn.innerText = "إلغاء وضع نصوص الماوس ❌";
+                btn.className = "w-full py-2.5 bg-rose-500 text-white font-extrabold rounded-xl text-xs transition shadow hover:bg-rose-600";
+                alert("تم تفعيل أداة النصوص! انقر الآن بدقة على أي نص لتبديله وحفظه للأبد.");
+                closeAdminModal();
+            } else {
+                document.querySelectorAll('.inspect-mode-text').forEach(el => el.classList.remove('inspect-mode-text'));
+                btn.innerText = "تفعيل نصوص الماوس 👆";
+                btn.className = "w-full py-2.5 bg-white text-blue-700 font-extrabold rounded-xl text-xs transition shadow hover:bg-blue-50";
+            }
+        }
+
+        document.addEventListener('click', function(e) {
+            if(isTargetedTextMode) {
+                const textTarget = e.target.closest('h1, h2, h3, p, span');
+                if(!textTarget || textTarget.closest('button') || textTarget.closest('input')) return;
+                e.preventDefault();
+                e.stopPropagation();
+                activeTargetTextElement = textTarget;
+                document.getElementById('targetTextInput').value = activeTargetTextElement.innerText.trim();
+                document.getElementById('targetedTextModal').classList.remove('hidden');
+                isTargetedTextMode = false;
+                document.querySelectorAll('.inspect-mode-text').forEach(el => el.classList.remove('inspect-mode-text'));
+                const btn = document.getElementById('textEditorBtnText');
+                if(btn) {
+                    btn.innerText = "تفعيل نصوص الماوس 👆";
+                    btn.className = "w-full py-2.5 bg-white text-blue-700 font-extrabold rounded-xl text-xs transition shadow hover:bg-blue-50";
+                }
+                return;
+            }
+
+            if(isImageReplacerMode) {
+                const imgTarget = e.target.closest('img');
+                if(!imgTarget) return;
+                e.preventDefault();
+                e.stopPropagation();
+                activeTargetImageElement = imgTarget;
+                document.getElementById('imageReplacerModal').classList.remove('hidden');
+                isImageReplacerMode = false;
+                document.querySelectorAll('.inspect-mode-img').forEach(el => el.classList.remove('inspect-mode-img'));
+                const btn = document.getElementById('imageReplacerBtnText');
+                if(btn) {
+                    btn.innerText = "تفعيل تغيير الصور 🖼️";
+                    btn.className = "w-full py-2.5 bg-white text-purple-700 font-extrabold rounded-xl text-xs transition shadow hover:bg-purple-50";
+                }
+                return;
+            }
+        }, true);
+
+        function toggleImageReplacerMode() {
+            isImageReplacerMode = !isImageReplacerMode;
+            if(isTargetedTextMode) toggleTargetedTextEditor();
+            const btn = document.getElementById('imageReplacerBtnText');
+            if(isImageReplacerMode) {
+                document.querySelectorAll('img').forEach(img => img.classList.add('inspect-mode-img'));
+                btn.innerText = "إلغاء وضع الصور ❌";
+                btn.className = "w-full py-2.5 bg-rose-500 text-white font-extrabold rounded-xl text-xs transition shadow hover:bg-rose-600";
+                alert("تم تفعيل أداة تغيير الصور! اضغط الآن بالماوس على أي صورة لاختيار بديلتها وحفظها للأبد.");
+                closeAdminModal();
+            } else {
+                document.querySelectorAll('.inspect-mode-img').forEach(img => img.classList.remove('inspect-mode-img'));
+                btn.innerText = "تفعيل تغيير الصور 🖼️";
+                btn.className = "w-full py-2.5 bg-white text-purple-700 font-extrabold rounded-xl text-xs transition shadow hover:bg-purple-50";
+            }
+        }
+
+        function closeImageReplacerModal() {
+            document.getElementById('imageReplacerModal').classList.add('hidden');
+            activeTargetImageElement = null;
+        }
+
+        function applyImageReplacement() {
+            if(!activeTargetImageElement) return;
+            const fileInput = document.getElementById('newImageFile');
+            if(!fileInput.files || fileInput.files.length === 0) return alert('الرجاء اختيار صورة من جهازك.');
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const newSrc = e.target.result;
+                activeTargetImageElement.src = newSrc;
+                
+                const selector = getUniqueSelector(activeTargetImageElement);
+                customMouseImages[selector] = newSrc;
+                localStorage.setItem('eng_custom_mouse_images', JSON.stringify(customMouseImages));
+
+                alert('تم استبدال الصورة وحفظها بنجاح نهائياً!');
+                closeImageReplacerModal();
+                fileInput.value = '';
+            };
+            reader.readAsDataURL(fileInput.files[0]);
+        }
+
+        function closeTargetedTextModal() {
+            document.getElementById('targetedTextModal').classList.add('hidden');
+            activeTargetTextElement = null;
+        }
+
+        function applyTargetedTextChanges() {
+            if(!activeTargetTextElement) return;
+            const newText = document.getElementById('targetTextInput').value.trim();
+            const newColor = document.getElementById('targetColorInput').value;
+
+            if(newText) activeTargetTextElement.innerText = newText;
+            if(newColor) activeTargetTextElement.style.color = newColor;
+
+            const selector = getUniqueSelector(activeTargetTextElement);
+            customMouseTexts[selector] = {
+                text: newText || activeTargetTextElement.innerText,
+                color: newColor || activeTargetTextElement.style.color
+            };
+            localStorage.setItem('eng_custom_mouse_texts', JSON.stringify(customMouseTexts));
+
+            alert('تم تعديل وحفظ النص نهائياً!');
+            closeTargetedTextModal();
+        }
+
+        function saveGranularColors() {
+            siteColors.logo = document.getElementById('colorLogo').value;
+            siteColors.banner = document.getElementById('colorBanner').value;
+            siteColors.buttons = document.getElementById('colorButtons').value;
+            siteColors.maintenance = document.getElementById('colorMaintenance').value;
+
+            localStorage.setItem('eng_granular_colors', JSON.stringify(siteColors));
+            applyGranularColors();
+            alert('تم حفظ وتطبيق ألوان العناصر بنجاح!');
+        }
+
+        function renderSubjectDropdown() {
+            const select = document.getElementById('newSubject');
+            if(select) {
+                select.innerHTML = subjectsList.map(sub => `<option value="${sub}">${sub}</option>`).join('');
+            }
+
+            const adminSubjectsList = document.getElementById('adminSubjectsDetailedList');
+            if(adminSubjectsList) {
+                adminSubjectsList.innerHTML = subjectsList.map((sub, i) => `
+                    <div class="flex items-center justify-between bg-white dark:bg-slate-800 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs">
+                        <span class="font-bold text-slate-800 dark:text-slate-200"><i class="fa-solid fa-folder text-blue-500 ml-2"></i> ${sub}</span>
+                        <div class="flex gap-1.5">
+                            <button onclick="editSubject(${i})" class="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-lg text-[10px]">تعديل</button>
+                            ${subjectsList.length > 1 ? `<button onclick="deleteSubject(${i})" class="px-2.5 py-1 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-lg text-[10px]">حذف</button>` : ''}
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function addNewSubject() {
+            const input = document.getElementById('newSubjectNameInput');
+            const name = input.value.trim();
+            if(!name) return alert('ادخل اسم القسم أو المادة الجديدة');
+            if(subjectsList.includes(name)) return alert('هذه المادة موجودة بالفعل!');
+            
+            subjectsList.push(name);
+            localStorage.setItem('eng_subjects_list', JSON.stringify(subjectsList));
+            input.value = '';
+            renderSubjectDropdown();
+            renderLibrary();
+            updateDashboardStats();
+            alert('تم إضافة القسم بنجاح!');
+        }
+
+        function editSubject(i) {
+            const oldName = subjectsList[i];
+            const newName = prompt(`تعديل اسم القسم "${oldName}":`, oldName);
+            if(!newName || !newName.trim()) return;
+            const trimmed = newName.trim();
+            if(subjectsList.includes(trimmed)) return alert('هذا الاسم موجود مسبقاً!');
+
+            subjectsList[i] = trimmed;
+            lectures.forEach(l => { if(l.subject === oldName) l.subject = trimmed; });
+            localStorage.setItem('eng_lectures', JSON.stringify(lectures));
+            localStorage.setItem('eng_subjects_list', JSON.stringify(subjectsList));
+
+            renderSubjectDropdown();
+            renderLibrary();
+            renderAdminItems();
+            alert('تم تعديل اسم القسم بنجاح!');
+        }
+
+        function deleteSubject(i) {
+            if(subjectsList.length <= 1) return alert('يجب أن تبقى مادة واحدة على الأقل.');
+            const subName = subjectsList[i];
+            if(confirm(`هل أنت متأكد من حذف قسم "${subName}"؟`)) {
+                subjectsList.splice(i, 1);
+                localStorage.setItem('eng_subjects_list', JSON.stringify(subjectsList));
+                renderSubjectDropdown();
+                renderLibrary();
+                updateDashboardStats();
+            }
+        }
+
+        let clubSlidersState = {};
+
+        function addClubLinkToList() {
+            const titleInput = document.getElementById('linkTitleInput');
+            const urlInput = document.getElementById('linkUrlInput');
+            const title = titleInput.value.trim();
+            const url = urlInput.value.trim();
+
+            if(!title || !url) return alert('الرجاء إدخال عنوان ورابط اللينك.');
+            tempClubLinks.push({ title, url });
+            titleInput.value = '';
+            urlInput.value = '';
+            renderAdminClubLinksPreview();
+        }
+
+        function removeClubLink(index) {
+            tempClubLinks.splice(index, 1);
+            renderAdminClubLinksPreview();
+        }
+
+        function renderAdminClubLinksPreview() {
+            const container = document.getElementById('adminClubLinksPreview');
+            if(!container) return;
+            if(tempClubLinks.length === 0) {
+                container.innerHTML = `<span class="text-[10px] text-slate-400">لا توجد لينكات مضافة بعد لهذا النادي.</span>`;
+                return;
+            }
+            container.innerHTML = tempClubLinks.map((l, i) => `
+                <div class="flex justify-between items-center bg-slate-50 dark:bg-slate-900 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs">
+                    <span class="font-bold text-slate-800 dark:text-slate-200 truncate max-w-[200px]">${l.title}</span>
+                    <button type="button" onclick="removeClubLink(${i})" class="text-rose-500 hover:text-rose-700 px-1 text-[11px]"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            `).join('');
+        }
+
+        function renderClubs() {
+            const query = document.getElementById('clubsSearchInput') ? document.getElementById('clubsSearchInput').value.toLowerCase() : '';
+            const grid = document.getElementById('clubsContainerGrid');
+            if(!grid) return;
+
+            const filtered = universityClubs.filter(c => c.name.toLowerCase().includes(query) || c.desc.toLowerCase().includes(query) || (c.category && c.category.toLowerCase().includes(query)));
+
+            if(filtered.length === 0) {
+                grid.innerHTML = `<div class="col-span-full py-12 text-center text-slate-400 font-medium">لا توجد أندية مطابقة للبحث حالياً.</div>`;
+                return;
+            }
+
+            grid.innerHTML = filtered.map(club => {
+                if(clubSlidersState[club.id] === undefined) clubSlidersState[club.id] = 0;
+                let curIdx = clubSlidersState[club.id];
+                let images = club.images && club.images.length > 0 ? club.images : ["https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=600&q=80"];
+                if(curIdx >= images.length) curIdx = 0;
+
+                return `
+                    <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm hover:shadow-md transition flex flex-col justify-between gap-4">
+                        <div class="space-y-3">
+                            <div class="relative w-full h-48 bg-slate-100 dark:bg-slate-800 rounded-2xl overflow-hidden group">
+                                <img src="${images[curIdx]}" class="w-full h-full object-cover transition-all duration-300">
+                                ${images.length > 1 ? `
+                                    <button onclick="slideClubImage(${club.id}, -1)" class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/50 text-white rounded-full flex items-center justify-center hover:bg-black transition"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                                    <button onclick="slideClubImage(${club.id}, 1)" class="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/50 text-white rounded-full flex items-center justify-center hover:bg-black transition"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                                    <span class="absolute bottom-2 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-black/60 text-white text-[10px] rounded-full">${curIdx + 1} / ${images.length}</span>
+                                ` : ''}
+                                ${club.category ? `<span class="absolute top-2 right-2 px-2.5 py-1 bg-blue-600/90 backdrop-blur-sm text-white text-[10px] font-bold rounded-xl shadow">${club.category}</span>` : ''}
+                            </div>
+
+                            <h3 class="font-black text-lg text-slate-900 dark:text-white">${club.name}</h3>
+                            <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed line-clamp-2">${club.desc}</p>
+                        </div>
+
+                        <button onclick="openClubDetails(${club.id})" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs text-center transition shadow flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-circle-info text-sm"></i> تفاصيل النادي والجروبات
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function slideClubImage(clubId, direction) {
+            const club = universityClubs.find(c => c.id === clubId);
+            if(!club || !club.images || club.images.length <= 1) return;
+            let len = club.images.length;
+            let cur = clubSlidersState[clubId] || 0;
+            cur = (cur + direction + len) % len;
+            clubSlidersState[clubId] = cur;
+            renderClubs();
+        }
+
+        function openClubDetails(id) {
+            const club = universityClubs.find(c => c.id === id);
+            if(!club) return;
+
+            document.getElementById('clubModalTitle').innerText = club.name;
+            const body = document.getElementById('clubModalBody');
+            
+            let linksHtml = '';
+            if(club.links && club.links.length > 0) {
+                linksHtml = `
+                    <div class="space-y-2 pt-1">
+                        <span class="font-bold text-blue-600 dark:text-blue-400 block">روابط وفورمات النادي:</span>
+                        <div class="space-y-2">
+                            ${club.links.map(l => `
+                                <a href="${l.url}" target="_blank" class="w-full py-2.5 px-4 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl text-xs text-center transition shadow flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-link text-sm"></i> ${l.title}
+                                </a>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            let qrBtnHtml = '';
+            if(club.qrImage) {
+                qrBtnHtml = `
+                    <div class="pt-2">
+                        <button onclick="openQrModal('${club.qrImage}')" class="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-2xl text-xs text-center transition shadow flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-qrcode text-base"></i> عرض كود QR الخاص بالنادي
+                        </button>
+                    </div>
+                `;
+            }
+
+            body.innerHTML = `
+                <div class="space-y-4">
+                    <div>
+                        <span class="font-bold text-blue-600 dark:text-blue-400 block mb-1">نبذة تعريفية:</span>
+                        <p class="text-slate-700 dark:text-slate-300 leading-relaxed">${club.desc}</p>
+                    </div>
+
+                    ${club.achievements ? `
+                        <div class="bg-purple-50 dark:bg-purple-900/20 p-3.5 rounded-2xl border border-purple-200 dark:border-purple-800 space-y-1">
+                            <span class="font-bold text-purple-700 dark:text-purple-300 block"><i class="fa-solid fa-trophy ml-1"></i> الإنجازات والجوائز:</span>
+                            <p class="text-slate-600 dark:text-slate-300">${club.achievements}</p>
+                        </div>
+                    ` : ''}
+
+                    ${club.cv ? `
+                        <div class="bg-indigo-50 dark:bg-indigo-900/20 p-3.5 rounded-2xl border border-indigo-200 dark:border-indigo-800 space-y-1">
+                            <span class="font-bold text-indigo-700 dark:text-indigo-300 block"><i class="fa-solid fa-id-card ml-1"></i> الهيكل الإداري وقادة النادي (CV):</span>
+                            <p class="text-slate-600 dark:text-slate-300 whitespace-pre-line">${club.cv}</p>
+                        </div>
+                    ` : ''}
+
+                    ${linksHtml}
+                    ${qrBtnHtml}
+                </div>
+            `;
+            document.getElementById('clubDetailsModal').classList.remove('hidden');
+        }
+
+        function closeClubDetailsModal() {
+            document.getElementById('clubDetailsModal').classList.add('hidden');
+        }
+
+        function openQrModal(imgSrc) {
+            document.getElementById('qrModalBody').innerHTML = `<img src="${imgSrc}" class="max-w-full max-h-64 rounded-2xl shadow-md border border-slate-200 dark:border-slate-700 object-contain">`;
+            document.getElementById('clubQrModal').classList.remove('hidden');
+        }
+
+        function closeQrModal() {
+            document.getElementById('clubQrModal').classList.add('hidden');
+        }
+
+        function saveClubData() {
+            const editId = document.getElementById('editClubId').value;
+            const name = document.getElementById('newClubName').value.trim();
+            const category = document.getElementById('newClubCategories').value.trim();
+            const desc = document.getElementById('newClubDesc').value.trim();
+            const achievements = document.getElementById('newClubAchievements').value.trim();
+            const cv = document.getElementById('newClubCv').value.trim();
+            const fileInput = document.getElementById('newClubImagesFile');
+            const qrInput = document.getElementById('newClubQrFile');
+
+            if(!name || !desc) return alert('الرجاء إدخال اسم النادي وشرحه على الأقل.');
+
+            let processFilesAndSave = (imageArray, qrUrl) => {
+                if(editId) {
+                    universityClubs = universityClubs.map(c => {
+                        if(c.id == editId) {
+                            return {
+                                ...c, name, category, desc, achievements, cv,
+                                links: tempClubLinks.length > 0 ? [...tempClubLinks] : (c.links || []),
+                                images: imageArray.length > 0 ? imageArray : c.images,
+                                qrImage: qrUrl ? qrUrl : (c.qrImage || "")
+                            };
+                        }
+                        return c;
+                    });
+                    alert('تم تعديل النادي بنجاح!');
+                } else {
+                    universityClubs.unshift({
+                        id: Date.now(), name, category, desc, achievements, cv,
+                        links: [...tempClubLinks],
+                        qrImage: qrUrl || "",
+                        images: imageArray.length > 0 ? imageArray : ["https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=600&q=80"]
+                    });
+                    alert('تم إضافة النادي بنجاح!');
+                }
+                localStorage.setItem('eng_university_clubs', JSON.stringify(universityClubs));
+                resetClubForm();
+                renderClubs();
+                renderAdminClubsList();
+                updateDashboardStats();
+            };
+
+            let handleQrAndImages = (loadedImages) => {
+                if(qrInput && qrInput.files && qrInput.files[0]) {
+                    let reader = new FileReader();
+                    reader.onload = function(e) {
+                        processFilesAndSave(loadedImages, e.target.result);
+                    };
+                    reader.readAsDataURL(qrInput.files[0]);
+                } else {
+                    let existingClub = editId ? universityClubs.find(c => c.id == editId) : null;
+                    processFilesAndSave(loadedImages, existingClub ? existingClub.qrImage : "");
+                }
+            };
+
+            if(fileInput && fileInput.files && fileInput.files.length > 0) {
+                let loadedImages = [];
+                let files = Array.from(fileInput.files);
+                let processed = 0;
+                files.forEach(file => {
+                    let reader = new FileReader();
+                    reader.onload = function(e) {
+                        loadedImages.push(e.target.result);
+                        processed++;
+                        if(processed === files.length) handleQrAndImages(loadedImages);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            } else {
+                handleQrAndImages([]);
+            }
+        }
+
+        function editClub(id) {
+            const c = universityClubs.find(item => item.id === id);
+            if(!c) return;
+            document.getElementById('editClubId').value = c.id;
+            document.getElementById('newClubName').value = c.name;
+            document.getElementById('newClubCategories').value = c.category || '';
+            document.getElementById('newClubDesc').value = c.desc;
+            document.getElementById('newClubAchievements').value = c.achievements || '';
+            document.getElementById('newClubCv').value = c.cv || '';
+            
+            tempClubLinks = c.links ? [...c.links] : [];
+            renderAdminClubLinksPreview();
+
+            document.getElementById('clubFormHeaderTitle').innerHTML = `<i class="fa-solid fa-pen-to-square"></i> تعديل نادي: ${c.name}`;
+            document.getElementById('saveClubBtn').innerText = "حفظ التعديلات";
+            document.getElementById('cancelClubEditBtn').classList.remove('hidden');
+        }
+
+        function resetClubForm() {
+            document.getElementById('editClubId').value = '';
+            document.getElementById('newClubName').value = '';
+            document.getElementById('newClubCategories').value = '';
+            document.getElementById('newClubDesc').value = '';
+            document.getElementById('newClubAchievements').value = '';
+            document.getElementById('newClubCv').value = '';
+            document.getElementById('newClubImagesFile').value = '';
+            document.getElementById('newClubQrFile').value = '';
+            document.getElementById('linkTitleInput').value = '';
+            document.getElementById('linkUrlInput').value = '';
+            tempClubLinks = [];
+            renderAdminClubLinksPreview();
+            document.getElementById('clubFormHeaderTitle').innerHTML = `<i class="fa-solid fa-users-rays"></i> إدارة أندية الجامعة (Clubs)`;
+            document.getElementById('saveClubBtn').innerText = "حفظ ونشر النادي";
+            document.getElementById('cancelClubEditBtn').classList.add('hidden');
+        }
+
+        function deleteClub(id) {
+            if(confirm('هل أنت متأكد من حذف هذا النادي؟')) {
+                universityClubs = universityClubs.filter(c => c.id !== id);
+                localStorage.setItem('eng_university_clubs', JSON.stringify(universityClubs));
+                renderClubs();
+                renderAdminClubsList();
+                updateDashboardStats();
+            }
+        }
+
+        function renderAdminClubsList() {
+            const list = document.getElementById('adminClubsList');
+            if(!list) return;
+            if(universityClubs.length === 0) {
+                list.innerHTML = `<span class="text-[11px] text-slate-400">لا توجد أندية مضافة حالياً.</span>`;
+                return;
+            }
+            list.innerHTML = universityClubs.map(c => `
+                <div class="flex justify-between items-center p-2.5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-xs">
+                    <span class="font-bold text-slate-900 dark:text-white truncate max-w-[220px]">${c.name}</span>
+                    <div class="flex gap-1">
+                        <button onclick="editClub(${c.id})" class="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-lg text-[10px]">تعديل</button>
+                        <button onclick="deleteClub(${c.id})" class="px-2.5 py-1 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-lg text-[10px]">حذف</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderAboutPage() {
+            document.getElementById('aboutGroupsTitleDisplay').innerText = siteSettings.aboutGroupsTitle || "روابط الجروبات الرسمية للدفعة والكلية";
+            document.getElementById('aboutGroupsDescDisplay').innerText = siteSettings.aboutGroupsDesc || "انضم للجروبات الرسمية.";
+            document.getElementById('aboutAppsTitleDisplay').innerText = siteSettings.aboutAppsTitle || "أهم التطبيقات والبرامج المطلوبة";
+            document.getElementById('aboutAppsDescDisplay').innerText = siteSettings.aboutAppsDesc || "تطبيقات وبرامج أساسية.";
+
+            const groupsGrid = document.getElementById('officialGroupsGrid');
+            groupsGrid.innerHTML = officialGroups.map((g) => `
+                <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 flex flex-col justify-between gap-3">
+                    <span class="font-bold text-xs text-slate-900 dark:text-white flex items-center gap-2">
+                        <i class="fa-brands fa-whatsapp text-emerald-500 text-base"></i> ${g.name}
+                    </span>
+                    <a href="${g.link}" target="_blank" class="py-2 px-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl text-xs text-center transition shadow">
+                        الانضمام للجروب <i class="fa-solid fa-arrow-left mr-1"></i>
+                    </a>
+                </div>
+            `).join('');
+
+            const appsGrid = document.getElementById('essentialAppsGrid');
+            appsGrid.innerHTML = essentialApps.map((app) => `
+                <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 flex flex-col justify-between gap-3">
+                    <div>
+                        <span class="font-bold text-xs text-slate-900 dark:text-white block mb-1">
+                            <i class="fa-solid fa-cube text-indigo-500 ml-1.5"></i> ${app.name}
+                        </span>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">${app.desc}</p>
+                    </div>
+                    <a href="${app.link}" target="_blank" class="py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs text-center transition shadow">
+                        تحميل التطبيق <i class="fa-solid fa-download mr-1"></i>
+                    </a>
+                </div>
+            `).join('');
+        }
+
+        let wrenchClicksCount = 0;
+        function handleSecretClicks() {
+            wrenchClicksCount++;
+            if (wrenchClicksCount >= 10) {
+                wrenchClicksCount = 0;
+                let pass = prompt("أدخل كلمة المرور السريعة:");
+                if (pass === adminPass) {
+                    alert("تم التعرف عليك! تم فتح الموقع بنجاح.");
+                    document.getElementById('maintenanceOverlay').classList.add('hidden');
+                }
+            }
+        }
+
+        function checkMaintenanceStatus() {
+            const overlay = document.getElementById('maintenanceOverlay');
+            document.getElementById('maintDisplayTitle').innerText = maintConfig.title;
+            document.getElementById('maintenanceMsgDisplay').innerText = maintConfig.msg;
+            document.getElementById('maintDisplayFooter').innerText = maintConfig.footer;
+
+            if (isMaintenanceMode) {
+                overlay.classList.remove('hidden');
+            } else {
+                overlay.classList.add('hidden');
+            }
+        }
+
+        function toggleMaintenanceMode() {
+            isMaintenanceMode = document.getElementById('maintenanceToggle').checked;
+            localStorage.setItem('eng_maintenance_mode', JSON.stringify(isMaintenanceMode));
+            checkMaintenanceStatus();
+        }
+
+        function updateMaintenancePassword() {
+            const newP = document.getElementById('changeMaintPassInput').value.trim();
+            if (!newP) return alert('ادخل كلمة المرور الجديدة');
+            adminPass = newP;
+            localStorage.setItem('eng_admin_pass', adminPass);
+            document.getElementById('changeMaintPassInput').value = '';
+            alert('تم تغيير كلمة المرور بنجاح!');
+        }
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'ar' ? 'en' : 'ar';
+            localStorage.setItem('eng_platform_lang', currentLang);
+            applyLanguage();
+            renderLibrary();
+        }
+
+        function applyLanguage() {
+            const t = translations[currentLang];
+            const isEn = currentLang === 'en';
+
+            document.documentElement.setAttribute('dir', isEn ? 'ltr' : 'rtl');
+            document.documentElement.setAttribute('lang', currentLang);
+
+            document.getElementById('pageTitleMeta').innerText = t.pageTitle;
+            document.getElementById('siteTitleDisplay').innerText = siteSettings.siteTitle;
+            document.getElementById('siteSubtitleDisplay').innerText = siteSettings.siteSubtitle;
+            document.getElementById('lblLibrary').innerText = siteSettings.libraryText;
+            document.getElementById('lblClubs').innerText = siteSettings.clubsText || "Clubs";
+            document.getElementById('lblAbout').innerText = siteSettings.aboutText;
+            document.getElementById('lblAnnouncements').innerText = siteSettings.announcementsText;
+            document.getElementById('bannerTitleDisplay').innerText = siteSettings.bannerTitle;
+            document.getElementById('bannerDescDisplay').innerText = siteSettings.bannerDesc;
+            document.getElementById('taskWidgetTitle').innerText = t.taskWidgetTitle;
+            document.getElementById('customTaskInput').placeholder = t.taskInputPlaceholder;
+            document.getElementById('addTaskBtnText').innerText = t.addTaskBtn;
+            document.getElementById('searchInput').placeholder = t.searchPlaceholder;
+            document.getElementById('adminModalTitle').innerText = t.adminModalTitle;
+            document.getElementById('adminLoginPrompt').innerText = t.adminLoginPrompt;
+            document.getElementById('adminLoginBtn').innerText = t.adminLoginBtn;
+            document.getElementById('langBtnText').innerText = isEn ? 'عربي' : 'English';
+
+            document.getElementById('footerTextDisplay').innerText = siteSettings.footerRights;
+            document.getElementById('developerTextDisplay').innerText = siteSettings.footerDev;
+
+            renderAboutPage();
+        }
+
+        function saveSiteSettings() {
+            siteSettings.siteTitle = document.getElementById('settingSiteTitle').value.trim() || siteSettings.siteTitle;
+            siteSettings.siteSubtitle = document.getElementById('settingSiteSubtitle').value.trim() || siteSettings.siteSubtitle;
+            siteSettings.bannerTitle = document.getElementById('settingBannerTitle').value.trim() || siteSettings.bannerTitle;
+            siteSettings.bannerDesc = document.getElementById('settingBannerDesc').value.trim() || siteSettings.bannerDesc;
+            siteSettings.libraryText = document.getElementById('settingLibraryText').value.trim() || siteSettings.libraryText;
+            siteSettings.clubsText = document.getElementById('settingClubsText').value.trim() || siteSettings.clubsText;
+            siteSettings.aboutText = document.getElementById('settingAboutText').value.trim() || siteSettings.aboutText;
+            siteSettings.announcementsText = document.getElementById('settingAnnouncementsText').value.trim() || siteSettings.announcementsText;
+
+            localStorage.setItem('eng_site_settings', JSON.stringify(siteSettings));
+            applyLanguage();
+            alert('تم تحديث وحفظ كافة عناوين ونصوص الموقع بنجاح!');
+        }
+
+        const defaultLectures = [
+            { id: 1, title: "مقدمة في هندسة الميكاترونكس", subject: "ميكاترونكس", fileType: "محاضرة", link: "https://drive.google.com/file/d/1_sample_link/preview", date: "2026-10-01" },
+            { id: 2, title: "تصميم المنشآت الخرسانية (شيت 1)", subject: "مدني", fileType: "شيت", link: "https://drive.google.com/file/d/2_sample_link/preview", date: "2026-10-05" }
+        ];
+
+        let lectures = JSON.parse(localStorage.getItem('eng_lectures')) || defaultLectures;
+        let announcements = JSON.parse(localStorage.getItem('eng_announcements')) || [
+            { title: "موعد تسليم مشاريع التخرج", date: "15 نوفمبر 2026", desc: "يرجى تسليم الدُفعة الأولى." }
+        ];
+        let customTasks = JSON.parse(localStorage.getItem('eng_custom_tasks')) || [];
+        let activeFilter = 'الكل';
+
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+        }
+        if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        }
+
+        function switchTab(tab) {
+            document.getElementById('sec-library').classList.add('hidden');
+            document.getElementById('sec-clubs').classList.add('hidden');
+            document.getElementById('sec-about').classList.add('hidden');
+            document.getElementById('sec-announcements').classList.add('hidden');
+
+            customTabsList.forEach(t => {
+                const sec = document.getElementById(`sec-${t.id}`);
+                if(sec) sec.classList.add('hidden');
+                const btn = document.getElementById(`tabBtn-${t.id}`);
+                if(btn) btn.className = "px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700";
+            });
+            
+            document.getElementById('tabBtn-library').className = "px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700";
+            document.getElementById('tabBtn-clubs').className = "px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700";
+            document.getElementById('tabBtn-about').className = "px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700";
+            document.getElementById('tabBtn-announcements').className = "px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700";
+
+            if (tab === 'library') {
+                document.getElementById('sec-library').classList.remove('hidden');
+                document.getElementById('tabBtn-library').className = "px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 bg-blue-600 text-white shadow-md shadow-blue-500/20";
+            } else if (tab === 'clubs') {
+                document.getElementById('sec-clubs').classList.remove('hidden');
+                document.getElementById('tabBtn-clubs').className = "px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 bg-blue-600 text-white shadow-md shadow-blue-500/20";
+                renderClubs();
+            } else if (tab === 'about') {
+                document.getElementById('sec-about').classList.remove('hidden');
+                document.getElementById('tabBtn-about').className = "px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 bg-blue-600 text-white shadow-md shadow-blue-500/20";
+                renderAboutPage();
+            } else if (tab === 'announcements') {
+                document.getElementById('sec-announcements').classList.remove('hidden');
+                document.getElementById('tabBtn-announcements').className = "px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 bg-blue-600 text-white shadow-md shadow-blue-500/20";
+                renderAnnouncements();
+            } else {
+                // Check if it's a dynamic custom tab
+                const sec = document.getElementById(`sec-${tab}`);
+                const btn = document.getElementById(`tabBtn-${tab}`);
+                if(sec && btn) {
+                    sec.classList.remove('hidden');
+                    btn.className = "px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 bg-blue-600 text-white shadow-md shadow-blue-500/20";
+                    renderCustomTabGrid(tab);
+                }
+            }
+            applyGranularColors();
+            applyPersistentMouseEdits();
+        }
+
+        function renderLibrary() {
+            const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+            const grid = document.getElementById('libraryGrid');
+            const filterContainer = document.getElementById('subjectFilterContainer');
+            
+            const subjects = [translations[currentLang].allFilter, ...subjectsList];
+            filterContainer.innerHTML = subjects.map(sub => `
+                <button onclick="activeFilter='${sub}'; renderLibrary();" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap ${activeFilter === sub ? 'bg-blue-600 text-white shadow' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'}">
+                    ${sub}
+                </button>
+            `).join('');
+
+            const filtered = lectures.filter(l => {
+                const matchesSearch = l.title.toLowerCase().includes(searchQuery) || l.subject.toLowerCase().includes(searchQuery);
+                const matchesFilter = activeFilter === translations[currentLang].allFilter || l.subject === activeFilter;
+                return matchesSearch && matchesFilter;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="col-span-full py-12 text-center text-slate-400 font-medium">لا توجد محاضرات مطابقة للبحث حالياً.</div>`;
+                return;
+            }
+
+            const t = translations[currentLang];
+            grid.innerHTML = filtered.map(l => `
+                <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm hover:shadow-md transition flex flex-col justify-between gap-4">
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-start">
+                            <span class="px-2.5 py-1 bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 rounded-lg text-xs font-bold">${l.subject} (${l.fileType || 'محاضرة'})</span>
+                            <span class="text-xs text-slate-400">${l.date}</span>
+                        </div>
+                        <h3 class="font-bold text-base text-slate-900 dark:text-white line-clamp-2 movable-text">${l.title}</h3>
+                    </div>
+                    <div class="flex gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                        <button onclick="openViewer('${l.link}', '${l.title}')" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-2 shadow-sm">
+                            <i class="fa-solid fa-eye"></i> ${t.openSiteBtn}
+                        </button>
+                        <a href="${l.link}" target="_blank" class="px-3.5 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-xl text-xs transition flex items-center justify-center">
+                            <i class="fa-solid fa-download"></i>
+                        </a>
+                    </div>
+                </div>
+            `).join('');
+            applyGranularColors();
+            applyPersistentMouseEdits();
+        }
+
+        function renderAnnouncements() {
+            const list = document.getElementById('announcementsList');
+            list.innerHTML = announcements.map(a => `
+                <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 space-y-1">
+                    <div class="flex justify-between items-center text-xs text-blue-600 font-bold">
+                        <span class="movable-text">${a.title}</span>
+                        <span>${a.date}</span>
+                    </div>
+                    <p class="text-xs text-slate-600 dark:text-slate-300 movable-text">${a.desc}</p>
+                </div>
+            `).join('');
+        }
+
+        function addCustomTask() {
+            const input = document.getElementById('customTaskInput');
+            const text = input.value.trim();
+            if (!text) return;
+            customTasks.push({ id: Date.now(), text, completed: false });
+            input.value = '';
+            saveAndRenderTasks();
+        }
+
+        function toggleTask(id) {
+            const task = customTasks.find(t => t.id === id);
+            if (task) task.completed = !task.completed;
+            saveAndRenderTasks();
+        }
+
+        function deleteCustomTask(id) {
+            customTasks = customTasks.filter(t => t.id !== id);
+            saveAndRenderTasks();
+        }
+
+        function saveAndRenderTasks() {
+            localStorage.setItem('eng_custom_tasks', JSON.stringify(customTasks));
+            const list = document.getElementById('customTasksList');
+            const fill = document.getElementById('taskProgressBarFill');
+            const progressText = document.getElementById('taskProgressText');
+
+            if (customTasks.length === 0) {
+                list.innerHTML = `<div class="text-xs text-blue-200 text-center py-2">لا توجد مهمات مضافة حالياً. أضف مهمتك الأولى!</div>`;
+                fill.style.width = '0%';
+                progressText.innerText = 'مؤشر إنجاز مهماتي: 0%';
+                return;
+            }
+
+            const completedCount = customTasks.filter(t => t.completed).length;
+            const percentage = Math.round((completedCount / customTasks.length) * 100);
+            fill.style.width = percentage + '%';
+            progressText.innerText = `مؤشر إنجاز مهماتي: ${percentage}%`;
+
+            list.innerHTML = customTasks.map(t => `
+                <div class="flex items-center justify-between bg-white/10 px-3 py-2 rounded-xl text-xs">
+                    <label class="flex items-center gap-2 cursor-pointer flex-1">
+                        <input type="checkbox" ${t.completed ? 'checked' : ''} onchange="toggleTask(${t.id})" class="rounded text-blue-600 focus:ring-0 w-4 h-4">
+                        <span class="${t.completed ? 'line-through text-blue-200' : 'text-white'} font-medium movable-text">${t.text}</span>
+                    </label>
+                    <button onclick="deleteCustomTask(${t.id})" class="text-rose-300 hover:text-white px-2"><i class="fa-solid fa-trash-can"></i></button>
+                </div>
+            `).join('');
+        }
+
+        function openViewer(link, title) {
+            document.getElementById('viewerTitle').innerText = title;
+            const body = document.getElementById('viewerBody');
+            let embedLink = link;
+            if (link.includes('drive.google.com') && !link.includes('preview')) {
+                embedLink = link.replace('/view?usp=sharing', '/preview').replace('/edit?usp=sharing', '/preview');
+            }
+            body.innerHTML = `<iframe src="${embedLink}" class="w-full h-full rounded-2xl border-0" allowfullscreen></iframe>`;
+            document.getElementById('fileViewerModal').classList.remove('hidden');
+        }
+
+        function closeViewerModal() {
+            document.getElementById('fileViewerModal').classList.add('hidden');
+            document.getElementById('viewerBody').innerHTML = '';
+        }
+
+        function openAdminModal() {
+            document.getElementById('adminModal').classList.remove('hidden');
+            
+            document.getElementById('settingSiteTitle').value = siteSettings.siteTitle;
+            document.getElementById('settingSiteSubtitle').value = siteSettings.siteSubtitle;
+            document.getElementById('settingBannerTitle').value = siteSettings.bannerTitle;
+            document.getElementById('settingBannerDesc').value = siteSettings.bannerDesc;
+            document.getElementById('settingLibraryText').value = siteSettings.libraryText;
+            document.getElementById('settingClubsText').value = siteSettings.clubsText || "Clubs";
+            document.getElementById('settingAboutText').value = siteSettings.aboutText;
+            document.getElementById('settingAnnouncementsText').value = siteSettings.announcementsText;
+
+            document.getElementById('maintenanceToggle').checked = isMaintenanceMode;
+            document.getElementById('colorLogo').value = siteColors.logo;
+            document.getElementById('colorBanner').value = siteColors.banner;
+            document.getElementById('colorButtons').value = siteColors.buttons;
+            document.getElementById('colorMaintenance').value = siteColors.maintenance;
+
+            updateDashboardStats();
+            renderAdminItems();
+            renderAdminClubsList();
+            renderAdminCustomTabsLists();
+            renderAboutPage();
+            renderSubjectDropdown();
+        }
+
+        function closeAdminModal() {
+            document.getElementById('adminModal').classList.add('hidden');
+            resetLectureForm();
+            resetClubForm();
+        }
+
+        function verifyAdminPassword() {
+            const pass = document.getElementById('adminPasswordInput').value;
+            if (pass === adminPass) {
+                document.getElementById('adminLoginBox').classList.add('hidden');
+                document.getElementById('adminDashboardContent').classList.remove('hidden');
+                renderAdminItems();
+                renderAdminClubsList();
+                renderAdminCustomTabsLists();
+                updateDashboardStats();
+                renderAboutPage();
+                renderSubjectDropdown();
+            } else {
+                alert('كلمة المرور غير صحيحة!');
+            }
+        }
+
+        function updateDashboardStats() {
+            document.getElementById('statLecturesCount').innerText = lectures.length;
+            document.getElementById('statSubjectsCount').innerText = subjectsList.length;
+            document.getElementById('statClubsCount').innerText = universityClubs.length;
+            
+            let totalCustomItems = 0;
+            Object.values(customTabItems).forEach(arr => totalCustomItems += arr.length);
+            document.getElementById('statCustomTabsCount').innerText = customTabsList.length + " (" + totalCustomItems + " عنصر)";
+        }
+
+        function saveLectureData() {
+            const editId = document.getElementById('editLectureId').value;
+            const title = document.getElementById('newTitle').value.trim();
+            const subject = document.getElementById('newSubject').value;
+            const fileType = document.getElementById('newFileType').value;
+            const link = document.getElementById('newLink').value.trim();
+
+            if (!title || !subject || !link) return alert('الرجاء إدخال كافة البيانات بشكل صحيح.');
+
+            if (editId) {
+                lectures = lectures.map(l => l.id == editId ? { ...l, title, subject, fileType, link } : l);
+                alert('تم تعديل المحاضرة بنجاح!');
+            } else {
+                lectures.unshift({ id: Date.now(), title, subject, fileType, link, date: new Date().toISOString().split('T')[0] });
+                alert('تم نشر المحاضرة بنجاح!');
+            }
+
+            localStorage.setItem('eng_lectures', JSON.stringify(lectures));
+            resetLectureForm();
+            renderLibrary();
+            renderAdminItems();
+            updateDashboardStats();
+        }
+
+        function editLecture(id) {
+            const l = lectures.find(item => item.id === id);
+            if (!l) return;
+            document.getElementById('editLectureId').value = l.id;
+            document.getElementById('newTitle').value = l.title;
+            document.getElementById('newSubject').value = l.subject;
+            document.getElementById('newFileType').value = l.fileType || 'محاضرة';
+            document.getElementById('newLink').value = l.link;
+            document.getElementById('formHeaderTitle').innerHTML = `<i class="fa-solid fa-pen-to-square"></i> تعديل محاضرة`;
+            document.getElementById('saveLectureBtn').innerText = "حفظ التعديلات";
+            document.getElementById('cancelEditBtn').classList.remove('hidden');
+        }
+
+        function resetLectureForm() {
+            document.getElementById('editLectureId').value = '';
+            document.getElementById('newTitle').value = '';
+            document.getElementById('newLink').value = '';
+            document.getElementById('formHeaderTitle').innerHTML = `<i class="fa-solid fa-circle-plus"></i> إضافة محاضرة للمكتبة`;
+            document.getElementById('saveLectureBtn').innerText = "نشر المحاضرة";
+            document.getElementById('cancelEditBtn').classList.add('hidden');
+        }
+
+        function deleteLecture(id) {
+            lectures = lectures.filter(l => l.id !== id);
+            localStorage.setItem('eng_lectures', JSON.stringify(lectures));
+            renderLibrary();
+            renderAdminItems();
+            updateDashboardStats();
+        }
+
+        function resetAllSiteData() {
+            if (confirm('هل أنت متأكد من مسح كافة البيانات وإعادة ضبط المصنع؟')) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+
+        function renderAdminItems() {
+            const list = document.getElementById('adminItemsList');
+            if(!list) return;
+            list.innerHTML = lectures.map(l => `
+                <div class="flex justify-between items-center p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-xs">
+                    <div>
+                        <span class="font-bold text-slate-900 dark:text-white">${l.title}</span>
+                        <span class="text-slate-400 block">(${l.subject} - ${l.fileType || 'محاضرة'})</span>
+                    </div>
+                    <div class="flex gap-1.5">
+                        <button onclick="editLecture(${l.id})" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-lg transition">تعديل</button>
+                        <button onclick="deleteLecture(${l.id})" class="px-3 py-1.5 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-lg transition">حذف</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+</html>
