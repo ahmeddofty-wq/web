@@ -2146,9 +2146,9 @@
   window.getDocs = getDocs;
   window.deleteDoc = deleteDoc;
   window.doc = doc;
-  async function loadLecturesFromFirebase() {
-            try {
-                const querySnapshot = await window.getDocs(window.collection(window.db, "lectures"));
+ // دالة التزامن اللحظي (تحديث تلقائي عند الكل في نفس اللحظة)
+        function loadLecturesFromFirebase() {
+            window.onSnapshot(window.collection(window.db, "lectures"), (querySnapshot) => {
                 lectures = [];
                 querySnapshot.forEach((doc) => {
                     lectures.push({ id: doc.id, ...doc.data() });
@@ -2156,11 +2156,12 @@
                 if (typeof renderLibrary === 'function') renderLibrary();
                 if (typeof renderAdminItems === 'function') renderAdminItems();
                 if (typeof updateDashboardStats === 'function') updateDashboardStats();
-            } catch (error) {
-                console.error("Error loading lectures: ", error);
-            }
+            }, (error) => {
+                console.error("Error listening for lectures: ", error);
+            });
         }
 
+        // تشغيل التزامن أول ما الصفحة تفتح
         window.addEventListener('DOMContentLoaded', () => {
             if (window.db) {
                 loadLecturesFromFirebase();
